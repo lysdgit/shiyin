@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -63,10 +66,20 @@ fun ShiyinApp() {
             containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
                 if (route != "player") {
-                    Column {
+                    // Scaffold 不替自定义 bottomBar 避让系统手势条,
+                    // 这里统一加导航栏 inset,并把小白条区域涂成播放条底色
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Surface1)
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                    ) {
                         MiniBar(onOpenPlayer = { nav.navigate("player") })
                         if (route == "main") {
-                            NavigationBar(containerColor = Surface1) {
+                            NavigationBar(
+                                containerColor = Surface1,
+                                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+                            ) {
                                 NavigationBarItem(
                                     selected = currentTab == 0,
                                     onClick = { currentTab = 0 },
