@@ -110,7 +110,7 @@ fun ShiyinApp() {
                     GalbumPage(nav, id)
                 }
                 composable("player") {
-                    FullPlayer(nav)
+                    FullPlayer(nav, backdrop)
                 }
             }
 
@@ -167,11 +167,12 @@ private fun GlassBottomBar(
                     shape = { RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp) },
                     effects = {
                         vibrancy()
-                        blur(6f.dp.toPx())
+                        blur(10f.dp.toPx())
                         // 折射(lens)基于 AGSL RuntimeShader,仅 Android 13+ 支持完整效果
                         if (Build.VERSION.SDK_INT >= 33) lens(12f.dp.toPx(), 24f.dp.toPx())
                     },
-                    onDrawSurface = { drawRect(Color.White.copy(alpha = 0.15f)) },
+                    // 深色玻璃面:压住背后的内容,保证文字对比度
+                    onDrawSurface = { drawRect(Color(0xFF0F0F0F).copy(alpha = 0.55f)) },
                 )
                 .safeContentPadding(),
         ) {
@@ -205,7 +206,7 @@ private fun SolidBottomBar(
 
 @Composable
 private fun TabRow(currentTab: Int, onTab: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().height(64.dp)) {
+    Row(Modifier.fillMaxWidth().height(60.dp)) {
         TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
         TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
         TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
@@ -222,6 +223,7 @@ private fun TabItem(
     modifier: Modifier = Modifier,
 ) {
     val selected = currentTab == index
+    val idleColor = Color(0xFFB5B5B5)
     Column(
         modifier
             .clip(RoundedCornerShape(16.dp))
@@ -232,14 +234,14 @@ private fun TabItem(
         Icon(
             painterResource(iconRes),
             contentDescription = label,
-            tint = if (selected) MaterialTheme.colorScheme.primary else SubText,
+            tint = if (selected) MaterialTheme.colorScheme.primary else idleColor,
             modifier = Modifier.size(22.dp),
         )
         Spacer(Modifier.height(2.dp))
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,
-            color = if (selected) MaterialTheme.colorScheme.primary else SubText,
+            color = if (selected) MaterialTheme.colorScheme.primary else idleColor,
         )
     }
 }

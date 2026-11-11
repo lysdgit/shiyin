@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -53,8 +54,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import android.os.Build
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
 import com.shiyin.player.R
 import com.shiyin.player.bili.BiliApi
 import com.shiyin.player.data.AppStore
@@ -110,7 +116,7 @@ fun MiniBar(onOpenPlayer: () -> Unit) {
 /* ================= 全屏播放页 ================= */
 
 @Composable
-fun FullPlayer(nav: NavHostController) {
+fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
     val q = AppStore.queue.value
     val track = q.tracks.getOrNull(q.index)
     val playing = PlayerBus.isPlaying.value
@@ -260,7 +266,15 @@ fun FullPlayer(nav: NavHostController) {
                 Box(
                     Modifier
                         .size(56.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .drawBackdrop(
+                            backdrop = backdrop,
+                            shape = { CircleShape },
+                            effects = {
+                                blur(6f.dp.toPx())
+                                if (Build.VERSION.SDK_INT >= 33) lens(6f.dp.toPx(), 10f.dp.toPx())
+                            },
+                            onDrawSurface = { drawRect(Pink.copy(alpha = 0.62f)) },
+                        )
                         .clickable { PlayerBus.togglePlay() },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -280,29 +294,43 @@ fun FullPlayer(nav: NavHostController) {
                     )
                 }
             }
-            // 副控制
-            Row(
+            // 副控制(玻璃胶囊)
+            Box(
                 Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                TextButton(onClick = { dialog = "speed" }) {
-                    Text(speedLabel, color = SubText)
-                }
-                TextButton(onClick = { dialog = "sleep" }) { Text("定时", color = SubText) }
-                TextButton(onClick = { dialog = "quality" }) {
-                    Text(
-                        when (AppStore.settings.value.quality) {
-                            "low" -> "流畅"
-                            "standard" -> "标准"
-                            else -> "高音质"
+                    .padding(bottom = 20.dp)
+                    .drawBackdrop(
+                        backdrop = backdrop,
+                        shape = { RoundedCornerShape(24.dp) },
+                        effects = {
+                            blur(8f.dp.toPx())
+                            if (Build.VERSION.SDK_INT >= 33) lens(8f.dp.toPx(), 12f.dp.toPx())
                         },
-                        color = SubText,
+                        onDrawSurface = { drawRect(Color(0xFF0F0F0F).copy(alpha = 0.45f)) },
                     )
-                }
-                TextButton(onClick = { PlayerBus.showQueue.value = true }) {
-                    Text("队列", color = SubText)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    TextButton(onClick = { dialog = "speed" }) {
+                        Text(speedLabel, color = OnText)
+                    }
+                    TextButton(onClick = { dialog = "sleep" }) { Text("定时", color = OnText) }
+                    TextButton(onClick = { dialog = "quality" }) {
+                        Text(
+                            when (AppStore.settings.value.quality) {
+                                "low" -> "流畅"
+                                "standard" -> "标准"
+                                else -> "高音质"
+                            },
+                            color = OnText,
+                        )
+                    }
+                    TextButton(onClick = { PlayerBus.showQueue.value = true }) {
+                        Text("队列", color = OnText)
+                    }
                 }
             }
         }
