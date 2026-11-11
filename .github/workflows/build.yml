@@ -48,9 +48,19 @@ jobs:
       - name: 构建 Release APK
         run: gradle assembleRelease --no-daemon
 
-      - name: 上传 APK
-        uses: actions/upload-artifact@v4
+      - name: 上传 APK(压缩包形式)
+        uses: actions/upload-artifact@v7
         with:
           name: Shiyin-APK
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
+
+      # 发布到 Releases:直接下载裸 APK,不用解压、不用登录
+      - name: 发布 APK 到 Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0-${{ github.run_number }}
+          name: 拾音 v1.0-${{ github.run_number }}
+          files: app/build/outputs/apk/release/*.apk
+          body: |
+            下载 **Shiyin-release.apk** 直接安装即可(此文件不是压缩包)
