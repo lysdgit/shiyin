@@ -92,6 +92,12 @@ fun ShiyinApp() {
                                     icon = { Icon(painterResource(R.drawable.ic_note), null) },
                                     label = { Text("歌单") },
                                 )
+                                NavigationBarItem(
+                                    selected = currentTab == 2,
+                                    onClick = { currentTab = 2 },
+                                    icon = { Icon(painterResource(R.drawable.ic_history), null) },
+                                    label = { Text("记录") },
+                                )
                             }
                         }
                     }
@@ -107,7 +113,11 @@ fun ShiyinApp() {
             ) {
                 composable("main") {
                     Box(Modifier.fillMaxSize()) {
-                        if (currentTab == 0) SearchPage(nav) else PlaylistsTab(nav)
+                        when (currentTab) {
+                            0 -> SearchPage(nav)
+                            1 -> PlaylistsTab(nav)
+                            else -> HistoryTab()
+                        }
                     }
                 }
                 composable("user/{mid}") { entry ->

@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import com.shiyin.player.data.AppStore
+import com.shiyin.player.data.PlayHistory
 import com.shiyin.player.player.PlayerBus
 import com.shiyin.player.ui.ShiyinApp
 
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         AppStore.load(this)
+        PlayHistory.load(this)
         PlayerBus.connect(this)
         if (Build.VERSION.SDK_INT >= 33) {
             notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)

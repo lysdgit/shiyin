@@ -12,8 +12,11 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.shiyin.player.bili.BiliApi
 import com.shiyin.player.data.AppStore
+import com.shiyin.player.data.HistoryEntry
 import com.shiyin.player.data.PageRef
+import com.shiyin.player.data.PlayHistory
 import com.shiyin.player.data.Track
+import com.shiyin.player.util.IPLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -82,12 +85,43 @@ object PlayerBus {
                 val idx = controller?.currentMediaItemIndex ?: -1
                 AppStore.queue.value = AppStore.queue.value.copy(index = idx)
                 AppStore.saveQueue()
+                // 听歌记录:切歌/自动下一首/单曲循环重复才记;恢复队列(PLAYLIST_CHANGED)不记
+                val shouldLog = when (reason) {
+                    Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT,
+                    Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+                    Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> true
+                    else -> false
+                }
+                if (shouldLog && mediaItem != null) logPlayHistory(mediaItem)
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 this@PlayerBus.isPlaying.value = isPlaying
             }
         })
+    }
+
+    /** 写一条听歌记录(歌名 + 播放时间 + IP 归属地点) */
+    private fun logPlayHistory(item: MediaItem) {
+        scope.launch {
+            val track = AppStore.queue.value.tracks.firstOrNull { it.key == item.mediaId }
+            val loc = IPLocation.fetch()
+            PlayHistory.log(
+                HistoryEntry(
+                    playedAt = System.currentTimeMillis(),
+                    title = track?.title ?: item.mediaMetadata.title?.toString() ?: "",
+                    author = track?.author ?: item.mediaMetadata.artist?.toString() ?: "",
+                    bvid = track?.bvid,
+                    aid = track?.aid,
+                    p = track?.p ?: 1,
+                    cid = track?.cid,
+                    cover = track?.cover,
+                    province = loc?.province,
+                    city = loc?.city,
+                    district = loc?.district,
+                )
+            )
+        }
     }
 
     /* ---------- MediaItem 构造 ---------- */

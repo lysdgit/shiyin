@@ -9,6 +9,7 @@ Kotlin + Jetpack Compose + Media3,无 WebView、无内嵌服务器,APK 单文件
 - **粘贴解析**:BV/av 号、视频链接(含 `?p=N`)、b23.tv 短链、收藏夹链接或 ID;单曲入队,多P视频与收藏夹自动创建歌单
 - **歌单**:新建 / 加入曲目(去重)/ 删除 / 导出 JSON;多P视频自动聚合为歌单;新歌单封面自动取自曲目
 - **播放器**:队列扁平化管理、列表/单曲循环、进度拖拽、倍速(0.75–2x)、睡眠定时、音质三档(切换保留进度)
+- **听歌记录**:每次真正播放(切歌/自动下一首/单曲循环)自动记一条——歌名、播放时间、播放地点(省/市/区县,IP 归属地查询,免定位权限);仅存手机本地不上传,可一键重播、可清空(上限 5000 条)
 - **失败处理**:音源 403 自动重新解析重试(保留进度);单曲失败自动跳下一首,连续 3 次失败暂停
 - **后台播放**:前台服务 + 系统媒体通知(锁屏/通知栏控制),音频焦点与耳机拔出暂停由 Media3 托管
 - **界面**:网易云风格深色 UI,迷你播放条 + 全屏播放页(下滑关闭)+ 队列底部抽屉
@@ -20,7 +21,10 @@ app/src/main/java/com/shiyin/player/
 ├── MainActivity.kt          # 入口,组装 Compose
 ├── data/
 │   ├── Models.kt            # Track / Galbum / Settings / QueueState(kotlinx-serialization)
-│   └── AppStore.kt          # 持久化(filesDir JSON),对应网页版 localStorage v2
+│   ├── AppStore.kt          # 持久化(filesDir JSON),对应网页版 localStorage v2
+│   └── PlayHistory.kt       # 听歌记录存储(时间/地点/歌曲,上限 5000 条)
+├── util/
+│   └── IPLocation.kt        # IP 归属地查询(百度千帆 + 备用接口,10 分钟缓存)
 ├── bili/
 │   └── BiliApi.kt           # B站接口层:搜索(buvid+412重试)/视频信息/playurl 解析/
 │                            #   UP主作品(老接口+wbi 签名兜底)/收藏夹/b23.tv/粘贴解析
@@ -29,9 +33,10 @@ app/src/main/java/com/shiyin/player/
 │   │                        #   ResolvingDataSource:占位 URI shiyin://track → 打开时解析直链 + Referer
 │   └── PlayerBus.kt         # UI ↔ 服务桥,队列以 AppStore 为唯一真源
 └── ui/
-    ├── Ui.kt                # 应用骨架(底部 Tab/迷你条/全局弹层)+ 通用组件
+    ├── Ui.kt                # 应用骨架(底部 Tab:搜索/歌单/记录)+ 通用组件
     ├── Search.kt            # 搜索页 + 粘贴解析弹窗(状态在对象层,切 Tab 不丢)
     ├── Pages.kt             # 歌单 Tab / 歌单详情 / UP主详情
+    ├── History.kt           # 听歌记录 Tab(倒序列表/重播/清空)
     └── Player.kt            # 全屏播放页(倍速/定时/音质)+ 队列抽屉 + 加入歌单弹窗
 ```
 
