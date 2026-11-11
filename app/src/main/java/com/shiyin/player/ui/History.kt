@@ -33,9 +33,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.R
-import com.shiyin.player.bili.Track
 import com.shiyin.player.data.HistoryEntry
 import com.shiyin.player.data.PlayHistory
+import com.shiyin.player.data.Track
 import com.shiyin.player.player.PlayerBus
 import java.time.Instant
 import java.time.ZoneId
@@ -77,11 +77,15 @@ fun HistoryTab() {
                 Text("还没有播放记录\n放一首歌试试", color = SubText, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         } else {
-            LazyColumn(Modifier.fillMaxSize()) {
+            LazyColumn(
+                Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    bottom = BottomBarMetrics.clearHeight.value + 8.dp,
+                ),
+            ) {
                 itemsIndexed(entries.asReversed()) { _, e ->
                     HistoryRow(e)
                 }
-                item { Spacer(Modifier.padding(bottom = 20.dp)) }
             }
         }
     }

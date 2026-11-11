@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -53,7 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.shiyin.player.R
 import com.shiyin.player.bili.BiliApi
 import com.shiyin.player.data.AppStore
@@ -73,9 +74,8 @@ fun MiniBar(onOpenPlayer: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .background(Surface1)
             .clickable(onClick = onOpenPlayer)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Cover(track.cover, 44.dp)
@@ -153,6 +153,7 @@ fun FullPlayer(nav: NavHostController) {
         Column(
             Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

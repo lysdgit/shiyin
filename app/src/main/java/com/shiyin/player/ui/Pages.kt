@@ -51,7 +51,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.shiyin.player.R
 import com.shiyin.player.bili.BiliApi
 import com.shiyin.player.data.AppStore
@@ -86,7 +86,10 @@ fun PlaylistsTab(nav: NavHostController) {
         }
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 120.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 12.dp, top = 12.dp, end = 12.dp,
+                bottom = BottomBarMetrics.clearHeight.value + 12.dp,
+            ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize(),
@@ -302,7 +305,12 @@ fun GalbumPage(nav: NavHostController, id: String) {
         }
         Spacer(Modifier.height(4.dp))
         // 曲目列表
-        LazyColumn(Modifier.fillMaxSize()) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                bottom = BottomBarMetrics.clearHeight.value,
+            ),
+        ) {
             itemsIndexed(g.tracks) { _, t ->
                 val q = AppStore.queue.value
                 TrackRow(
@@ -432,7 +440,12 @@ fun UserPage(nav: NavHostController, mid: Long) {
                 }
             }
         }
-        LazyColumn(Modifier.fillMaxSize()) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                bottom = BottomBarMetrics.clearHeight.value,
+            ),
+        ) {
             itemsIndexed(works) { _, t ->
                 val q = AppStore.queue.value
                 TrackRow(

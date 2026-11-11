@@ -2,8 +2,10 @@
 
 package com.shiyin.player.ui
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,20 +27,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -46,14 +50,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
 import com.shiyin.player.R
 import com.shiyin.player.bili.BiliApi
 import com.shiyin.player.data.AppStore
 import com.shiyin.player.data.Track
 import com.shiyin.player.player.PlayerBus
 
-/** 应用骨架:底部 Tab(搜索/歌单)+ 迷你播放条 + 全局弹层 */
+/** 内容列表需要避让的底栏实测高度(玻璃栏渲染后写回,页面列表读它加 contentPadding) */
+object BottomBarMetrics {
+    val clearHeight = mutableStateOf(110.dp)
+}
+
+/** 应用骨架:内容全幅 + 液态玻璃底栏(Android 12+;更低版本回退实色)+ 全局弹层 */
 @Composable
 fun ShiyinApp() {
     ShiyinTheme {
@@ -62,54 +78,19 @@ fun ShiyinApp() {
         val route = backStack?.destination?.route ?: "main"
         var currentTab by rememberSaveable { mutableIntStateOf(0) }
 
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
-            bottomBar = {
-                if (route != "player") {
-                    // Scaffold 不替自定义 bottomBar 避让系统手势条,
-                    // 这里统一加导航栏 inset,并把小白条区域涂成播放条底色
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .background(Surface1)
-                            .windowInsetsPadding(WindowInsets.navigationBars)
-                    ) {
-                        MiniBar(onOpenPlayer = { nav.navigate("player") })
-                        if (route == "main") {
-                            NavigationBar(
-                                containerColor = Surface1,
-                                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                            ) {
-                                NavigationBarItem(
-                                    selected = currentTab == 0,
-                                    onClick = { currentTab = 0 },
-                                    icon = { Icon(painterResource(R.drawable.ic_search), null) },
-                                    label = { Text("搜索") },
-                                )
-                                NavigationBarItem(
-                                    selected = currentTab == 1,
-                                    onClick = { currentTab = 1 },
-                                    icon = { Icon(painterResource(R.drawable.ic_note), null) },
-                                    label = { Text("歌单") },
-                                )
-                                NavigationBarItem(
-                                    selected = currentTab == 2,
-                                    onClick = { currentTab = 2 },
-                                    icon = { Icon(painterResource(R.drawable.ic_history), null) },
-                                    label = { Text("记录") },
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-        ) { padding ->
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Bg)
+        ) {
+            val backdrop = rememberLayerBackdrop()
             NavHost(
                 nav,
                 startDestination = "main",
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .statusBarsPadding()
+                    .layerBackdrop(backdrop),
             ) {
                 composable("main") {
                     Box(Modifier.fillMaxSize()) {
@@ -132,12 +113,131 @@ fun ShiyinApp() {
                     FullPlayer(nav)
                 }
             }
+
+            if (route != "player") {
+                if (Build.VERSION.SDK_INT >= 31) {
+                    GlassBottomBar(
+                        backdrop = backdrop,
+                        currentTab = currentTab,
+                        onTab = { currentTab = it },
+                        onOpenPlayer = { nav.navigate("player") },
+                    )
+                } else {
+                    SolidBottomBar(
+                        currentTab = currentTab,
+                        onTab = { currentTab = it },
+                        onOpenPlayer = { nav.navigate("player") },
+                    )
+                }
+            }
         }
 
         // 全局弹层
         if (PlayerBus.showQueue.value) QueueSheet()
         PlayerBus.addToTrack.value?.let { AddToSheet(it) }
         if (PlayerBus.showPaste.value) PasteDialog()
+    }
+}
+
+/* ---------------- 底部栏(玻璃 / 实色) ---------------- */
+
+@Composable
+private fun GlassBottomBar(
+    backdrop: Backdrop,
+    currentTab: Int,
+    onTab: (Int) -> Unit,
+    onOpenPlayer: () -> Unit,
+) {
+    val density = LocalDensity.current
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .onGloballyPositioned { coords ->
+                BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
+            },
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .drawBackdrop(
+                    backdrop = backdrop,
+                    shape = { RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp) },
+                    effects = {
+                        vibrancy()
+                        blur(6f.dp.toPx())
+                        // 折射(lens)基于 AGSL RuntimeShader,仅 Android 13+ 支持完整效果
+                        if (Build.VERSION.SDK_INT >= 33) lens(12f.dp.toPx(), 24f.dp.toPx())
+                    },
+                    onDrawSurface = { drawRect(Color.White.copy(alpha = 0.15f)) },
+                )
+                .safeContentPadding(),
+        ) {
+            MiniBar(onOpenPlayer = onOpenPlayer)
+            TabRow(currentTab, onTab)
+        }
+    }
+}
+
+@Composable
+private fun SolidBottomBar(
+    currentTab: Int,
+    onTab: (Int) -> Unit,
+    onOpenPlayer: () -> Unit,
+) {
+    val density = LocalDensity.current
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { coords ->
+                BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
+            }
+            .background(Surface1)
+            .windowInsetsPadding(WindowInsets.navigationBars),
+    ) {
+        MiniBar(onOpenPlayer = onOpenPlayer)
+        TabRow(currentTab, onTab)
+    }
+}
+
+@Composable
+private fun TabRow(currentTab: Int, onTab: (Int) -> Unit) {
+    Row(Modifier.fillMaxWidth().height(64.dp)) {
+        TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
+        TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
+        TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun TabItem(
+    label: String,
+    iconRes: Int,
+    index: Int,
+    currentTab: Int,
+    onTab: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val selected = currentTab == index
+    Column(
+        modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onTab(index) },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            painterResource(iconRes),
+            contentDescription = label,
+            tint = if (selected) MaterialTheme.colorScheme.primary else SubText,
+            modifier = Modifier.size(22.dp),
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (selected) MaterialTheme.colorScheme.primary else SubText,
+        )
     }
 }
 
@@ -244,17 +344,5 @@ fun SubTopBar(title: String, onBack: () -> Unit, trailing: @Composable (() -> Un
             modifier = Modifier.weight(1f),
         )
         if (trailing != null) trailing()
-    }
-}
-
-/** Surface 上的浅色文本小徽章 */
-@Composable
-fun Badge(text: String) {
-    Box(
-        Modifier
-            .background(Surface2, RoundedCornerShape(4.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-    ) {
-        Text(text, style = MaterialTheme.typography.labelSmall, color = SubText)
     }
 }
