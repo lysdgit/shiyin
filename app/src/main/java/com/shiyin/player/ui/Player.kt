@@ -43,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -323,10 +324,10 @@ fun FullPlayer(nav: NavHostController) {
                 "standard" -> "标准"
                 else -> "高音质"
             },
-            onSelect = { label ->
-                val q2 = when (label) {
-                    "流畅" -> "low"
-                    "标准" -> "standard"
+            onSelect = { value ->
+                val q2 = when (value) {
+                    0f -> "low"
+                    1f -> "standard"
                     else -> "high"
                 }
                 PlayerBus.setQuality(q2)

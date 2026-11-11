@@ -8,7 +8,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -188,10 +190,11 @@ object BiliApi {
 
     /* ---------------- B站 Cookie(搜索需要 buvid) ---------------- */
 
-    @Synchronized
-    suspend fun getCookie(forceRefresh: Boolean = false) {
+    private val cookieMutex = Mutex()
+
+    suspend fun getCookie(forceRefresh: Boolean = false) = cookieMutex.withLock {
         val s = AppStore.settings.value
-        if (!forceRefresh && !s.buvid3.isNullOrBlank()) return
+        if (!forceRefresh && !s.buvid3.isNullOrBlank()) return@withLock
         val res = getJson("https://api.bilibili.com/x/frontend/finger/spi", mapOf("User-Agent" to BILI_UA))
         val b3 = res.o("data")?.s("b_3")
             ?: throw IOException("获取 buvid cookie 失败")
@@ -444,38 +447,40 @@ object BiliApi {
      * playurl 解析 DASH 音频流。注意:不能带 buvid cookie,否则 412 风控。
      * CDN 直链有时效,缓存 20 分钟;force = true 跳过缓存(403 重试用)。
      */
-    @Synchronized
-    suspend fun resolveAudio(bvid: String, cid: Long, quality: String, force: Boolean = false): AudioSrc {
-        val key = "audio:$bvid|$cid|$quality"
-        if (!force) (cacheGet(key) as? AudioSrc)?.let { return it }
-        val res = getBili(
-            "https://api.bilibili.com/x/player/playurl?bvid=${encodeParam(bvid)}&cid=$cid&fnval=16",
-            mapOf("user-agent" to UA, "referer" to "https://www.bilibili.com/"),
-        )
-        val d = res.o("data") ?: throw IOException("解析音源失败")
-        var url: String? = null
-        var kind = "durl"
-        var bandwidth = 0L
-        val dashAudio = d.o("dash")?.a("audio")?.items().orEmpty()
-        if (dashAudio.isNotEmpty()) {
-            kind = "dash"
-            val sorted = dashAudio.sortedBy { it.l("bandwidth") ?: 0 }
-            val pick = when (quality) {
-                "low" -> sorted.first()
-                "standard" -> sorted[minOf(1, sorted.size - 1)]
-                else -> sorted.last()
+    private val audioMutex = Mutex()
+
+    suspend fun resolveAudio(bvid: String, cid: Long, quality: String, force: Boolean = false): AudioSrc =
+        audioMutex.withLock {
+            val key = "audio:$bvid|$cid|$quality"
+            if (!force) (cacheGet(key) as? AudioSrc)?.let { return@withLock it }
+            val res = getBili(
+                "https://api.bilibili.com/x/player/playurl?bvid=${encodeParam(bvid)}&cid=$cid&fnval=16",
+                mapOf("user-agent" to UA, "referer" to "https://www.bilibili.com/"),
+            )
+            val d = res.o("data") ?: throw IOException("解析音源失败")
+            var url: String? = null
+            var kind = "durl"
+            var bandwidth = 0L
+            val dashAudio = d.o("dash")?.a("audio")?.items().orEmpty()
+            if (dashAudio.isNotEmpty()) {
+                kind = "dash"
+                val sorted = dashAudio.sortedBy { it.l("bandwidth") ?: 0 }
+                val pick = when (quality) {
+                    "low" -> sorted.first()
+                    "standard" -> sorted[minOf(1, sorted.size - 1)]
+                    else -> sorted.last()
+                }
+                url = pick.s("baseUrl") ?: pick.a("backupUrl")?.items()?.firstOrNull()?.s("url")
+                    ?: pick.a("backup_url")?.items()?.firstOrNull()?.s("url")
+                bandwidth = pick.l("bandwidth") ?: 0
+            } else {
+                url = d.a("durl")?.items()?.firstOrNull()?.s("url")
             }
-            url = pick.s("baseUrl") ?: pick.a("backupUrl")?.items()?.firstOrNull()?.s("url")
-                ?: pick.a("backup_url")?.items()?.firstOrNull()?.s("url")
-            bandwidth = pick.l("bandwidth") ?: 0
-        } else {
-            url = d.a("durl")?.items()?.firstOrNull()?.s("url")
+            if (url.isNullOrEmpty()) throw IOException("该视频没有可用的音频流")
+            val out = AudioSrc(httpsUrl(url)!!, kind, bandwidth)
+            cacheSet(key, out, 20 * 60 * 1000)
+            out
         }
-        if (url.isNullOrEmpty()) throw IOException("该视频没有可用的音频流")
-        val out = AudioSrc(httpsUrl(url)!!, kind, bandwidth)
-        cacheSet(key, out, 20 * 60 * 1000)
-        return out
-    }
 
     /* ---------------- b23.tv 短链 ---------------- */
 

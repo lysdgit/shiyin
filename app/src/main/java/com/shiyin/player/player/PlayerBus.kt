@@ -121,13 +121,14 @@ object PlayerBus {
         c.repeatMode = if (AppStore.queue.value.mode == "one") Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_ALL
     }
 
-    /** 冷启动恢复队列(不自动播放) */
+    /** 冷启动恢复队列(不自动播放)。MediaController 用 setMediaItems + seekTo 定位 */
     private fun restoreIfNeeded() {
         val c = controller ?: return
         val q = AppStore.queue.value
-        if (c.currentMediaItemCount > 0 || q.tracks.isEmpty()) return
+        if (c.currentTimeline.windowCount > 0 || q.tracks.isEmpty()) return
         val idx = q.index.coerceIn(0, q.tracks.size - 1)
-        c.setMediaSources(q.tracks.map { mediaItemFor(it) }, idx, 0)
+        c.setMediaItems(q.tracks.map { mediaItemFor(it) })
+        c.seekTo(idx, 0)
         c.prepare()
         applyRepeatMode()
     }
@@ -206,7 +207,8 @@ object PlayerBus {
             val ready = ensureAll(tracks)
             if (ready.isEmpty()) return@launch
             val idx = startIndex.coerceIn(0, ready.size - 1)
-            c.setMediaSources(ready.map { mediaItemFor(it) }, idx, 0)
+            c.setMediaItems(ready.map { mediaItemFor(it) })
+            c.seekTo(idx, 0)
             syncStore(ready, idx)
             c.prepare()
             c.play()
@@ -331,7 +333,8 @@ object PlayerBus {
         AppStore.saveSettings()
         val tracks = AppStore.queue.value.tracks
         if (tracks.isEmpty()) return
-        c.setMediaSources(tracks.map { mediaItemFor(it) }, idx.coerceAtLeast(0), pos)
+        c.setMediaItems(tracks.map { mediaItemFor(it) })
+        c.seekTo(idx.coerceAtLeast(0), pos)
         c.prepare()
         if (wasPlaying) c.play()
     }

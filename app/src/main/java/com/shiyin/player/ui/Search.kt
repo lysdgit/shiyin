@@ -55,8 +55,8 @@ import coil.compose.AsyncImage
 import com.shiyin.player.R
 import com.shiyin.player.bili.BiliApi
 import com.shiyin.player.bili.BiliUser
-import com.shiyin.player.bili.Track
 import com.shiyin.player.data.AppStore
+import com.shiyin.player.data.Track
 import com.shiyin.player.player.PlayerBus
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
