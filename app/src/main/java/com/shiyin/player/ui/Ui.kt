@@ -117,6 +117,7 @@ fun ShiyinApp() {
             if (route != "player") {
                 if (Build.VERSION.SDK_INT >= 31) {
                     GlassBottomBar(
+                        modifier = Modifier.align(Alignment.BottomCenter),
                         backdrop = backdrop,
                         currentTab = currentTab,
                         onTab = { currentTab = it },
@@ -124,6 +125,7 @@ fun ShiyinApp() {
                     )
                 } else {
                     SolidBottomBar(
+                        modifier = Modifier.align(Alignment.BottomCenter),
                         currentTab = currentTab,
                         onTab = { currentTab = it },
                         onOpenPlayer = { nav.navigate("player") },
@@ -143,6 +145,7 @@ fun ShiyinApp() {
 
 @Composable
 private fun GlassBottomBar(
+    modifier: Modifier = Modifier,
     backdrop: Backdrop,
     currentTab: Int,
     onTab: (Int) -> Unit,
@@ -150,9 +153,8 @@ private fun GlassBottomBar(
 ) {
     val density = LocalDensity.current
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
-            .align(Alignment.BottomCenter)
             .onGloballyPositioned { coords ->
                 BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
             },
@@ -181,13 +183,14 @@ private fun GlassBottomBar(
 
 @Composable
 private fun SolidBottomBar(
+    modifier: Modifier = Modifier,
     currentTab: Int,
     onTab: (Int) -> Unit,
     onOpenPlayer: () -> Unit,
 ) {
     val density = LocalDensity.current
     Column(
-        Modifier
+        modifier
             .fillMaxWidth()
             .onGloballyPositioned { coords ->
                 BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
