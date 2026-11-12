@@ -191,12 +191,6 @@ private fun GlassBottomBar(
             pillAnim.snapTo(dragStartTab.toFloat())
         }
     }
-    LaunchedEffect(currentTab) {
-        if (!dragging) pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
-    }
-    LaunchedEffect(currentTab) {
-        if (!dragging) pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
-    }
     val position = if (dragging && slot > 0) dragStartTab + dragOffset / slot else pillAnim.value
     val stretch = if (dragging) (dragOffset * 0.3f).coerceIn(-64f, 64f) else recoil.value
 
@@ -217,7 +211,11 @@ private fun GlassBottomBar(
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
-                        if (dragging) dragOffset += delta
+                        if (dragging) {
+                            // 拖出边界时加橡皮筋阻尼,滑块拖不跑
+                            val raw = dragStartTab + (dragOffset + delta) / slot
+                            dragOffset += if (raw < 0f || raw > 3f) delta * 0.3f else delta
+                        }
                     },
                     onDragStarted = {
                         dragging = true
@@ -313,7 +311,11 @@ private fun SolidBottomBar(
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
-                        if (dragging) dragOffset += delta
+                        if (dragging) {
+                            // 拖出边界时加橡皮筋阻尼,滑块拖不跑
+                            val raw = dragStartTab + (dragOffset + delta) / slot
+                            dragOffset += if (raw < 0f || raw > 3f) delta * 0.3f else delta
+                        }
                     },
                     onDragStarted = {
                         dragging = true
