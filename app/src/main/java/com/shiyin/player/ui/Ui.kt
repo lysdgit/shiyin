@@ -3,13 +3,18 @@
 package com.shiyin.player.ui
 
 import android.os.Build
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +34,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,7 +44,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.IntOffset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -45,6 +55,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -188,7 +199,7 @@ private fun GlassBottomBar(
                 .padding(horizontal = 4.dp, vertical = 2.dp),
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
-            TabRow(currentTab, onTab)
+            TabRow(currentTab = currentTab, onTab = onTab, backdrop = backdrop, useGlass = true)
         }
     }
 }
@@ -218,19 +229,115 @@ private fun SolidBottomBar(
                 .padding(horizontal = 4.dp, vertical = 2.dp),
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
-            TabRow(currentTab, onTab)
+            TabRow(currentTab = currentTab, onTab = onTab, backdrop = null, useGlass = false)
         }
     }
 }
 
+/** 底部 Tab 行:选中的 tab 有一个玻璃滑块(切 tab 时弹簧动画滑过去),支持左右滑动切换 */
 @Composable
-private fun TabRow(currentTab: Int, onTab: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().height(52.dp)) {
-        TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
-        TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
-        TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
-        TabItem("设置", R.drawable.ic_settings, 3, currentTab, onTab, Modifier.weight(1f))
+private fun TabRow(
+    currentTab: Int,
+    onTab: (Int) -> Unit,
+    backdrop: Backdrop?,
+    useGlass: Boolean,
+) {
+    val density = LocalDensity.current
+    var rowWidthPx by remember { mutableIntStateOf(0) }
+    var dragX by remember { mutableFloatStateOf(0f) }
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .onGloballyPositioned { rowWidthPx = it.size.width },
+    ) {
+        // 选中滑块(玻璃或实色,画在文字下层)
+        if (rowWidthPx > 0) {
+            if (useGlass && backdrop != null && Build.VERSION.SDK_INT >= 31) {
+                GlassTabPill(backdrop, currentTab, rowWidthPx)
+            } else {
+                SolidTabPill(currentTab, rowWidthPx)
+            }
+        }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .pointerInput(currentTab) {
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { change, _ ->
+                            change.consume()
+                            dragX += change.positionChange().x
+                        },
+                        onDragEnd = {
+                            if (dragX < -90f) onTab((currentTab + 1).coerceAtMost(3))
+                            else if (dragX > 90f) onTab((currentTab - 1).coerceAtLeast(0))
+                            dragX = 0f
+                        },
+                    )
+                },
+        ) {
+            TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
+            TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
+            TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
+            TabItem("设置", R.drawable.ic_settings, 3, currentTab, onTab, Modifier.weight(1f))
+        }
     }
+}
+
+/** 选中 tab 的液态玻璃滑块(弹簧动画跟随) */
+@Composable
+private fun BoxScope.GlassTabPill(backdrop: Backdrop, currentTab: Int, rowWidthPx: Int) {
+    val density = LocalDensity.current
+    val dark = isDarkTheme()
+    val anim = remember { Animatable(currentTab.toFloat()) }
+    LaunchedEffect(currentTab) {
+        anim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.75f, stiffness = 400f))
+    }
+    val slot = rowWidthPx / 4f
+    val pillW = slot - with(density) { 16.dp.toPx() }
+    val pillH = with(density) { 44.dp.toPx() }
+    val rowH = with(density) { 52.dp.toPx() }
+    Box(
+        Modifier
+            .offset { IntOffset((anim.value * slot + (slot - pillW) / 2f).roundToInt(), ((rowH - pillH) / 2f).roundToInt()) }
+            .size(with(density) { pillW.toDp() }, 44.dp)
+            .drawBackdrop(
+                backdrop = backdrop,
+                shape = { RoundedCornerShape(18.dp) },
+                effects = {
+                    vibrancy()
+                    blur(8f.dp.toPx())
+                    if (Build.VERSION.SDK_INT >= 33) lens(6f.dp.toPx(), 10f.dp.toPx())
+                },
+                onDrawSurface = {
+                    if (dark) drawRect(Color(0xFF2E2E2E).copy(alpha = 0.85f))
+                    else drawRect(Color(0xFFFFFFFF).copy(alpha = 0.85f))
+                    drawRect(Pink.copy(alpha = 0.22f))
+                },
+            ),
+    )
+}
+
+/** Android 11 及以下的实色滑块 */
+@Composable
+private fun BoxScope.SolidTabPill(currentTab: Int, rowWidthPx: Int) {
+    val density = LocalDensity.current
+    val anim = remember { Animatable(currentTab.toFloat()) }
+    LaunchedEffect(currentTab) {
+        anim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.75f, stiffness = 400f))
+    }
+    val slot = rowWidthPx / 4f
+    val pillW = slot - with(density) { 16.dp.toPx() }
+    val pillH = with(density) { 44.dp.toPx() }
+    val rowH = with(density) { 52.dp.toPx() }
+    Box(
+        Modifier
+            .offset { IntOffset((anim.value * slot + (slot - pillW) / 2f).roundToInt(), ((rowH - pillH) / 2f).roundToInt()) }
+            .size(with(density) { pillW.toDp() }, 44.dp)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f), RoundedCornerShape(18.dp)),
+    )
 }
 
 @Composable

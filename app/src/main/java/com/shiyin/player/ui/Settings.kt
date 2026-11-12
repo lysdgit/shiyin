@@ -118,7 +118,7 @@ fun SettingsTab() {
                 value = s.glassAlpha,
                 onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(glassAlpha = v) },
                 onValueChangeFinished = { AppStore.saveSettings() },
-                valueRange = 0.5f..1f,
+                valueRange = 0f..1f,
             )
             Text(
                 "模糊强度 ${s.glassBlur.toInt()}dp",
