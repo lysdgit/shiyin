@@ -98,15 +98,15 @@ fun PlaylistsTab(nav: NavHostController) {
                 Column(
                     Modifier
                         .clip(RoundedCornerShape(10.dp))
-                        .background(Surface1)
+                        .background(MaterialTheme.colorScheme.surface)
                         .clickable { creating = true }
                         .padding(vertical = 20.dp)
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(painterResource(R.drawable.ic_plus), contentDescription = null, tint = SubText)
+                    Icon(painterResource(R.drawable.ic_plus), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(6.dp))
-                    Text("新建歌单", style = MaterialTheme.typography.bodySmall, color = SubText)
+                    Text("新建歌单", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             itemsIndexed(galbums) { _, g ->
@@ -114,14 +114,14 @@ fun PlaylistsTab(nav: NavHostController) {
                     Column(
                         Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Surface1)
+                            .background(MaterialTheme.colorScheme.surface)
                             .clickable { nav.navigate("galbum/${g.id}") },
                     ) {
                         Box(
                             Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1.45f)
-                                .background(Surface2)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             AsyncImage(
                                 model = g.cover,
@@ -140,7 +140,7 @@ fun PlaylistsTab(nav: NavHostController) {
                             Text(
                                 "${g.tracks.size}首",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = SubText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -154,7 +154,7 @@ fun PlaylistsTab(nav: NavHostController) {
                         Icon(
                             painterResource(R.drawable.ic_trash),
                             contentDescription = "删除歌单",
-                            tint = SubText,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
                         )
                     }
@@ -240,7 +240,7 @@ fun GalbumPage(nav: NavHostController, id: String) {
         Column(Modifier.fillMaxSize()) {
             SubTopBar("歌单", onBack = { nav.popBackStack() })
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("歌单不存在或已被删除", color = SubText)
+                Text("歌单不存在或已被删除", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         return
@@ -260,7 +260,7 @@ fun GalbumPage(nav: NavHostController, id: String) {
                     .width(110.dp)
                     .height(72.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Surface2)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 AsyncImage(
                     model = g.cover,
@@ -278,7 +278,7 @@ fun GalbumPage(nav: NavHostController, id: String) {
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(2.dp))
-                Text("${g.author} · ${g.tracks.size}首", style = MaterialTheme.typography.bodySmall, color = SubText)
+                Text("${g.author} · ${g.tracks.size}首", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         // 操作行
@@ -297,10 +297,10 @@ fun GalbumPage(nav: NavHostController, id: String) {
             }
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = { exportLauncher.launch("${g.title}.json") }) {
-                Icon(painterResource(R.drawable.ic_download), contentDescription = "导出", tint = SubText)
+                Icon(painterResource(R.drawable.ic_download), contentDescription = "导出", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = { deleting = true }) {
-                Icon(painterResource(R.drawable.ic_trash), contentDescription = "删除歌单", tint = SubText)
+                Icon(painterResource(R.drawable.ic_trash), contentDescription = "删除歌单", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         Spacer(Modifier.height(4.dp))
@@ -392,13 +392,13 @@ fun UserPage(nav: NavHostController, mid: Long) {
                     Text(
                         "${BiliApi.formatCount(user.fans)}粉丝 · ${user.videos}个作品",
                         style = MaterialTheme.typography.bodySmall,
-                        color = SubText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (user.sign.isNotBlank()) {
                         Text(
                             user.sign,
                             style = MaterialTheme.typography.bodySmall,
-                            color = SubText,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -470,7 +470,7 @@ fun UserPage(nav: NavHostController, mid: Long) {
                         }
                         loading -> CircularProgressIndicator(Modifier.height(24.dp))
                         !isEnd -> TextButton(onClick = { load(page + 1) }) { Text("加载更多") }
-                        else -> Text("没有更多了", color = SubText, style = MaterialTheme.typography.labelSmall)
+                        else -> Text("没有更多了", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }

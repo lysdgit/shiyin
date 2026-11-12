@@ -96,7 +96,7 @@ fun MiniBar(onOpenPlayer: () -> Unit) {
             Text(
                 track.author,
                 style = MaterialTheme.typography.bodySmall,
-                color = SubText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -120,6 +120,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
     val q = AppStore.queue.value
     val track = q.tracks.getOrNull(q.index)
     val playing = PlayerBus.isPlaying.value
+    val dark = isDarkTheme()
     val speedLabel = AppStore.settings.value.speed.let { s ->
         if (s % 1f == 0f) "${s.toInt()}x" else "${s}x"
     }
@@ -145,7 +146,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Bg)
+            .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
                     onVerticalDrag = { _, dy -> dragAccum += dy },
@@ -180,7 +181,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                 Spacer(Modifier.weight(1f))
                 PlayerBus.sleepUntil.value?.let { until ->
                     val remainMin = ((until - System.currentTimeMillis()).coerceAtLeast(0)) / 60000
-                    Text("定时 ${remainMin + 1} 分钟", style = MaterialTheme.typography.labelSmall, color = SubText)
+                    Text("定时 ${remainMin + 1} 分钟", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             Spacer(Modifier.weight(1f))
@@ -190,7 +191,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                     .fillMaxWidth(0.82f)
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Surface2),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
@@ -213,7 +214,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
             Text(
                 track?.author ?: "",
                 style = MaterialTheme.typography.bodyMedium,
-                color = SubText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -239,13 +240,13 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                 Text(
                     BiliApi.formatDuration((position / 1000).toInt()),
                     style = MaterialTheme.typography.labelSmall,
-                    color = SubText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
                     BiliApi.formatDuration((duration / 1000).toInt()),
                     style = MaterialTheme.typography.labelSmall,
-                    color = SubText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             // 主控制
@@ -273,7 +274,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                                 blur(6f.dp.toPx())
                                 if (Build.VERSION.SDK_INT >= 33) lens(6f.dp.toPx(), 10f.dp.toPx())
                             },
-                            onDrawSurface = { drawRect(Pink.copy(alpha = 0.62f)) },
+                            onDrawSurface = { drawRect(Pink.copy(alpha = 0.85f)) },
                         )
                         .clickable { PlayerBus.togglePlay() },
                     contentAlignment = Alignment.Center,
@@ -306,7 +307,11 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                             blur(8f.dp.toPx())
                             if (Build.VERSION.SDK_INT >= 33) lens(8f.dp.toPx(), 12f.dp.toPx())
                         },
-                        onDrawSurface = { drawRect(Color(0xFF0F0F0F).copy(alpha = 0.45f)) },
+                        // 副控制胶囊同样接近实底,保证文字清晰
+                        onDrawSurface = {
+                            if (dark) drawRect(Color(0xFF1E1E1E).copy(alpha = 0.95f))
+                            else drawRect(Color(0xFFFFFFFF).copy(alpha = 0.95f))
+                        },
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
@@ -315,9 +320,9 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     TextButton(onClick = { dialog = "speed" }) {
-                        Text(speedLabel, color = OnText)
+                        Text(speedLabel, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    TextButton(onClick = { dialog = "sleep" }) { Text("定时", color = OnText) }
+                    TextButton(onClick = { dialog = "sleep" }) { Text("定时", color = MaterialTheme.colorScheme.onSurface) }
                     TextButton(onClick = { dialog = "quality" }) {
                         Text(
                             when (AppStore.settings.value.quality) {
@@ -325,11 +330,11 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                                 "standard" -> "标准"
                                 else -> "高音质"
                             },
-                            color = OnText,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                     TextButton(onClick = { PlayerBus.showQueue.value = true }) {
-                        Text("队列", color = OnText)
+                        Text("队列", color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -443,7 +448,7 @@ fun QueueSheet() {
 
     ModalBottomSheet(
         onDismissRequest = { PlayerBus.showQueue.value = false },
-        containerColor = Surface1,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
             Row(
@@ -456,10 +461,10 @@ fun QueueSheet() {
                     modifier = Modifier.weight(1f),
                 )
                 TextButton(onClick = { PlayerBus.toggleMode() }) {
-                    Text(if (q.mode == "one") "单曲循环" else "列表循环", color = SubText)
+                    Text(if (q.mode == "one") "单曲循环" else "列表循环", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = { PlayerBus.clearQueue() }) {
-                    Icon(painterResource(R.drawable.ic_trash), contentDescription = "清空", tint = SubText)
+                    Icon(painterResource(R.drawable.ic_trash), contentDescription = "清空", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             LazyColumn(
@@ -479,7 +484,7 @@ fun QueueSheet() {
                         Text(
                             "${i + 1}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = SubText,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.width(26.dp),
                         )
                         Cover(t.cover, 40.dp)
@@ -496,21 +501,21 @@ fun QueueSheet() {
                             Text(
                                 t.author,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = SubText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }
                         if (t.isMultiP) {
                             TextButton(onClick = { pPick = Pair(i, t) }) {
-                                Text("切P", color = SubText, style = MaterialTheme.typography.labelSmall)
+                                Text("切P", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                             }
                         }
                         IconButton(onClick = { PlayerBus.removeAt(i) }) {
                             Icon(
                                 painterResource(R.drawable.ic_close),
                                 contentDescription = "移除",
-                                tint = SubText,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),
                             )
                         }
@@ -561,7 +566,7 @@ fun AddToSheet(track: Track) {
 
     ModalBottomSheet(
         onDismissRequest = { PlayerBus.closeAddTo() },
-        containerColor = Surface1,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Text("加入歌单", style = MaterialTheme.typography.titleMedium)
@@ -595,7 +600,7 @@ fun AddToSheet(track: Track) {
                 ) { Text("创建") }
             }
             Spacer(Modifier.height(8.dp))
-            Text("选择已有歌单", style = MaterialTheme.typography.labelSmall, color = SubText)
+            Text("选择已有歌单", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             LazyColumn(Modifier.fillMaxWidth().heightIn(max = 340.dp)) {
                 items(galbums) { g ->
                     val joined = g.tracks.any { it.key == track.key }
@@ -621,9 +626,9 @@ fun AddToSheet(track: Track) {
                         Spacer(Modifier.width(10.dp))
                         Text(g.title, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (joined) {
-                            Text("已加入 ✓", style = MaterialTheme.typography.labelSmall, color = SubText)
+                            Text("已加入 ✓", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         } else {
-                            Icon(painterResource(R.drawable.ic_plus), contentDescription = null, tint = SubText)
+                            Icon(painterResource(R.drawable.ic_plus), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }

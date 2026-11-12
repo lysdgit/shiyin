@@ -81,7 +81,7 @@ fun ShiyinApp() {
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Bg)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             val backdrop = rememberLayerBackdrop()
             NavHost(
@@ -97,7 +97,8 @@ fun ShiyinApp() {
                         when (currentTab) {
                             0 -> SearchPage(nav)
                             1 -> PlaylistsTab(nav)
-                            else -> HistoryTab()
+                            2 -> HistoryTab()
+                            else -> SettingsTab()
                         }
                     }
                 }
@@ -167,12 +168,15 @@ private fun GlassBottomBar(
                     shape = { RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp) },
                     effects = {
                         vibrancy()
-                        blur(10f.dp.toPx())
+                        blur(12f.dp.toPx())
                         // 折射(lens)基于 AGSL RuntimeShader,仅 Android 13+ 支持完整效果
                         if (Build.VERSION.SDK_INT >= 33) lens(12f.dp.toPx(), 24f.dp.toPx())
                     },
-                    // 深色玻璃面:压住背后的内容,保证文字对比度
-                    onDrawSurface = { drawRect(Color(0xFF0F0F0F).copy(alpha = 0.55f)) },
+                    // tab 区独立实底(96%),只留轻微玻璃质感,保证文字始终清晰
+                    onDrawSurface = {
+                        if (isDarkTheme()) drawRect(Color(0xFF181818).copy(alpha = 0.96f))
+                        else drawRect(Color(0xFFFBFBFB).copy(alpha = 0.96f))
+                    },
                 )
                 .safeContentPadding(),
         ) {
@@ -196,7 +200,7 @@ private fun SolidBottomBar(
             .onGloballyPositioned { coords ->
                 BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
             }
-            .background(Surface1)
+            .background(MaterialTheme.colorScheme.surface)
             .windowInsetsPadding(WindowInsets.navigationBars),
     ) {
         MiniBar(onOpenPlayer = onOpenPlayer)
@@ -210,6 +214,7 @@ private fun TabRow(currentTab: Int, onTab: (Int) -> Unit) {
         TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
         TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
         TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
+        TabItem("设置", R.drawable.ic_settings, 3, currentTab, onTab, Modifier.weight(1f))
     }
 }
 
@@ -223,7 +228,7 @@ private fun TabItem(
     modifier: Modifier = Modifier,
 ) {
     val selected = currentTab == index
-    val idleColor = Color(0xFFB5B5B5)
+    val idleColor = MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         modifier
             .clip(RoundedCornerShape(16.dp))
@@ -254,7 +259,7 @@ fun Cover(url: String?, size: Dp, radius: Int = 6) {
         Modifier
             .size(size)
             .clip(RoundedCornerShape(radius.dp))
-            .background(Surface2)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         AsyncImage(
             model = url,
@@ -302,7 +307,7 @@ fun TrackRow(
                     if (track.play > 0) append(" · ${BiliApi.formatCount(track.play)}次播放")
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = SubText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -311,10 +316,10 @@ fun TrackRow(
             Spacer(Modifier.width(6.dp))
             Box(
                 Modifier
-                    .background(Surface2, RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
-                Text("P${track.pagesCount}", style = MaterialTheme.typography.labelSmall, color = SubText)
+                Text("P${track.pagesCount}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         IconButton(onClick = onPlay) {

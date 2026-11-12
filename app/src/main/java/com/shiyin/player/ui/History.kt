@@ -66,15 +66,15 @@ fun HistoryTab() {
             Text(
                 "${entries.size} 条",
                 style = MaterialTheme.typography.labelSmall,
-                color = SubText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             IconButton(onClick = { clearing = true }, enabled = entries.isNotEmpty()) {
-                Icon(painterResource(R.drawable.ic_trash), contentDescription = "清空记录", tint = SubText)
+                Icon(painterResource(R.drawable.ic_trash), contentDescription = "清空记录", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (entries.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("还没有播放记录\n放一首歌试试", color = SubText, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text("还没有播放记录\n放一首歌试试", color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         } else {
             LazyColumn(
@@ -146,14 +146,14 @@ private fun HistoryRow(e: HistoryEntry) {
                     append(formatTime(e.playedAt))
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = SubText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 e.placeText,
                 style = MaterialTheme.typography.labelSmall,
-                color = SubText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

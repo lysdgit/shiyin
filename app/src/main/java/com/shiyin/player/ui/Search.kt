@@ -208,8 +208,8 @@ fun SearchPage(nav: NavHostController) {
                 singleLine = true,
                 shape = RoundedCornerShape(24.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Surface2,
-                    unfocusedContainerColor = Surface2,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                 ),
@@ -264,7 +264,7 @@ fun SearchPage(nav: NavHostController) {
             Text(
                 "约 ${BiliApi.formatCount(SearchState.numResults.toLong())} 个结果",
                 style = MaterialTheme.typography.labelSmall,
-                color = SubText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
@@ -293,7 +293,7 @@ fun SearchPage(nav: NavHostController) {
             }
             !SearchState.searched -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("搜一搜,或者点右上角粘贴列表", color = SubText)
+                    Text("搜一搜,或者点右上角粘贴列表", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             SearchState.type == "video" -> {
@@ -324,7 +324,7 @@ fun SearchPage(nav: NavHostController) {
                                 ) { Text("加载更多") }
                                 else -> Text(
                                     "没有更多了",
-                                    color = SubText,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             }
@@ -352,14 +352,14 @@ fun SearchPage(nav: NavHostController) {
                                 Text(
                                     "${BiliApi.formatCount(u.fans)}粉丝 · ${u.videos}个作品",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = SubText,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                 )
                                 if (u.sign.isNotBlank()) {
                                     Text(
                                         u.sign,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = SubText,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1,
                                     )
                                 }
@@ -367,7 +367,7 @@ fun SearchPage(nav: NavHostController) {
                             Icon(
                                 painterResource(R.drawable.ic_next),
                                 contentDescription = null,
-                                tint = SubText,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -384,7 +384,7 @@ fun SearchPage(nav: NavHostController) {
                             ) { Text("加载更多") }
                             else Text(
                                 "没有更多了",
-                                color = SubText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
@@ -402,7 +402,7 @@ fun Avatar(url: String?, size: Dp) {
         Modifier
             .size(size)
             .clip(CircleShape)
-            .background(Surface2)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         AsyncImage(
             model = url,
@@ -429,7 +429,7 @@ fun PasteDialog() {
                 Text(
                     "支持 BV/av 号、视频链接、b23.tv 短链、收藏夹链接或 ID;多P视频和收藏夹将创建为歌单",
                     style = MaterialTheme.typography.bodySmall,
-                    color = SubText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(

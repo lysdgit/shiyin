@@ -52,6 +52,7 @@ data class Galbum(
 data class Settings(
     var quality: String = "high", // low / standard / high
     var speed: Float = 1f,
+    var theme: String = "dark", // dark / light
     var buvid3: String? = null,
     var buvid4: String? = null,
 )
