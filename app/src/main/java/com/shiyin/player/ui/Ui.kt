@@ -153,6 +153,7 @@ private fun GlassBottomBar(
     onOpenPlayer: () -> Unit,
 ) {
     val density = LocalDensity.current
+    val dark = isDarkTheme()
     Box(
         modifier
             .fillMaxWidth()
@@ -174,7 +175,7 @@ private fun GlassBottomBar(
                     },
                     // tab 区独立实底(96%),只留轻微玻璃质感,保证文字始终清晰
                     onDrawSurface = {
-                        if (isDarkTheme()) drawRect(Color(0xFF181818).copy(alpha = 0.96f))
+                        if (dark) drawRect(Color(0xFF181818).copy(alpha = 0.96f))
                         else drawRect(Color(0xFFFBFBFB).copy(alpha = 0.96f))
                     },
                 )
