@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
@@ -154,7 +155,7 @@ fun ShiyinApp() {
     }
 }
 
-/* ---------------- 底部栏(玻璃 / 实色) ---------------- */
+/* ---------------- 底部栏(玻璃 / 实色,dock 交互) ---------------- */
 
 @Composable
 private fun GlassBottomBar(
@@ -169,7 +170,18 @@ private fun GlassBottomBar(
     val s = AppStore.settings.value
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
-    var dragX by remember { mutableFloatStateOf(0f) }
+    val scope = rememberCoroutineScope()
+    val pillAnim = remember { Animatable(0f) }
+    val recoil = remember { Animatable(0f) }
+    var panelInnerW by remember { mutableIntStateOf(0) }
+    var dragStartTab by remember { mutableIntStateOf(0) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
+
+    val slot = if (panelInnerW > 0) panelInnerW / 4f else 0f
+    val position = if (dragging && slot > 0) dragStartTab + dragOffset / slot else pillAnim.value
+    val stretch = if (dragging) (dragOffset * 0.3f).coerceIn(-64f, 64f) else recoil.value
+
     // dock 式悬浮:避让手势条 + 左右留边,面板本体为全圆角胶囊
     Column(
         modifier
@@ -183,17 +195,40 @@ private fun GlassBottomBar(
         Column(
             Modifier
                 .fillMaxWidth()
+                .onGloballyPositioned { panelInnerW = it.size.width }
                 .pointerInput(currentTab) {
-                    // 整个 dock 面板都响应左右滑动切 tab
+                    // 整个 dock 面板都响应左右拖拽:玻璃滑块跟手形变,松手吸附最近 tab
                     detectHorizontalDragGestures(
+                        onDragStart = { _ ->
+                            dragging = true
+                            dragStartTab = currentTab
+                            dragOffset = 0f
+                            scope.launch { pillAnim.snapTo(currentTab.toFloat()) }
+                        },
                         onHorizontalDrag = { change, _ ->
-                            change.consume()
-                            dragX += change.positionChange().x
+                            if (dragging) {
+                                change.consume()
+                                dragOffset += change.positionChange().x
+                            }
                         },
                         onDragEnd = {
-                            if (dragX < -90f) onTab((currentTab + 1).coerceAtMost(3))
-                            else if (dragX > 90f) onTab((currentTab - 1).coerceAtLeast(0))
-                            dragX = 0f
+                            if (!dragging) return@detectHorizontalDragGestures
+                            val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
+                            val target = raw.roundToInt().coerceIn(0, 3)
+                            val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
+                            dragging = false
+                            dragOffset = 0f
+                            // 拉伸回弹
+                            scope.launch {
+                                recoil.snapTo(lastStretch)
+                                recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
+                            }
+                            if (target != currentTab) onTab(target)
+                            // 滑块从松手位置弹簧吸附到目标 tab
+                            scope.launch {
+                                pillAnim.snapTo(raw)
+                                pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+                            }
                         },
                     )
                 }
@@ -215,7 +250,13 @@ private fun GlassBottomBar(
                 .padding(horizontal = 6.dp, vertical = 6.dp),
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
-            TabRow(currentTab = currentTab, onTab = onTab, backdrop = backdrop, useGlass = true)
+            TabRow(
+                currentTab = currentTab,
+                backdrop = backdrop,
+                useGlass = true,
+                position = position,
+                stretch = stretch,
+            )
         }
     }
 }
@@ -228,7 +269,18 @@ private fun SolidBottomBar(
     onOpenPlayer: () -> Unit,
 ) {
     val density = LocalDensity.current
-    var dragX by remember { mutableFloatStateOf(0f) }
+    val scope = rememberCoroutineScope()
+    val pillAnim = remember { Animatable(0f) }
+    val recoil = remember { Animatable(0f) }
+    var panelInnerW by remember { mutableIntStateOf(0) }
+    var dragStartTab by remember { mutableIntStateOf(0) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
+
+    val slot = if (panelInnerW > 0) panelInnerW / 4f else 0f
+    val position = if (dragging && slot > 0) dragStartTab + dragOffset / slot else pillAnim.value
+    val stretch = if (dragging) (dragOffset * 0.3f).coerceIn(-64f, 64f) else recoil.value
+
     Column(
         modifier
             .fillMaxWidth()
@@ -241,16 +293,37 @@ private fun SolidBottomBar(
         Column(
             Modifier
                 .fillMaxWidth()
+                .onGloballyPositioned { panelInnerW = it.size.width }
                 .pointerInput(currentTab) {
                     detectHorizontalDragGestures(
+                        onDragStart = { _ ->
+                            dragging = true
+                            dragStartTab = currentTab
+                            dragOffset = 0f
+                            scope.launch { pillAnim.snapTo(currentTab.toFloat()) }
+                        },
                         onHorizontalDrag = { change, _ ->
-                            change.consume()
-                            dragX += change.positionChange().x
+                            if (dragging) {
+                                change.consume()
+                                dragOffset += change.positionChange().x
+                            }
                         },
                         onDragEnd = {
-                            if (dragX < -90f) onTab((currentTab + 1).coerceAtMost(3))
-                            else if (dragX > 90f) onTab((currentTab - 1).coerceAtLeast(0))
-                            dragX = 0f
+                            if (!dragging) return@detectHorizontalDragGestures
+                            val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
+                            val target = raw.roundToInt().coerceIn(0, 3)
+                            val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
+                            dragging = false
+                            dragOffset = 0f
+                            scope.launch {
+                                recoil.snapTo(lastStretch)
+                                recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
+                            }
+                            if (target != currentTab) onTab(target)
+                            scope.launch {
+                                pillAnim.snapTo(raw)
+                                pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+                            }
                         },
                     )
                 }
@@ -259,21 +332,36 @@ private fun SolidBottomBar(
                 .padding(horizontal = 6.dp, vertical = 6.dp),
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
-            TabRow(currentTab = currentTab, onTab = onTab, backdrop = null, useGlass = false)
+            TabRow(
+                currentTab = currentTab,
+                backdrop = null,
+                useGlass = false,
+                position = position,
+                stretch = stretch,
+            )
         }
     }
 }
 
-/** 底部 Tab 行:选中的 tab 有一个玻璃滑块(切 tab 时弹簧动画滑过去),支持左右滑动切换 */
+/** 底部 Tab 行:选中滑块跟随 position(拖拽中跟手,松手后弹簧吸附);图标随滑块距离轻微放大 */
 @Composable
 private fun TabRow(
     currentTab: Int,
-    onTab: (Int) -> Unit,
     backdrop: Backdrop?,
     useGlass: Boolean,
+    position: Float,
+    stretch: Float,
 ) {
-    val density = LocalDensity.current
     var rowWidthPx by remember { mutableIntStateOf(0) }
+
+    fun tabScale(index: Int): Float {
+        if (rowWidthPx <= 0) return 1f
+        val slot = rowWidthPx / 4f
+        val pillCenter = position * slot + slot / 2f
+        val center = index * slot + slot / 2f
+        val dist = (kotlin.math.abs(center - pillCenter) / slot).coerceIn(0f, 1f)
+        return 1f + 0.16f * (1f - dist)
+    }
 
     Box(
         Modifier
@@ -284,36 +372,37 @@ private fun TabRow(
         // 选中滑块(玻璃或实色,画在文字下层)
         if (rowWidthPx > 0) {
             if (useGlass && backdrop != null && Build.VERSION.SDK_INT >= 31) {
-                GlassTabPill(backdrop, currentTab, rowWidthPx)
+                GlassTabPill(backdrop, position, stretch, rowWidthPx)
             } else {
-                SolidTabPill(currentTab, rowWidthPx)
+                SolidTabPill(position, stretch, rowWidthPx)
             }
         }
         Row(Modifier.fillMaxWidth().height(52.dp)) {
-            TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
-            TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
-            TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
-            TabItem("设置", R.drawable.ic_settings, 3, currentTab, onTab, Modifier.weight(1f))
+            TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, tabScale(0), Modifier.weight(1f))
+            TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, tabScale(1), Modifier.weight(1f))
+            TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, tabScale(2), Modifier.weight(1f))
+            TabItem("设置", R.drawable.ic_settings, 3, currentTab, onTab, tabScale(3), Modifier.weight(1f))
         }
     }
 }
 
-/** 选中 tab 的液态玻璃滑块(弹簧动画跟随) */
+/** 选中 tab 的液态玻璃滑块:拖拽时顺手指方向拉长形变,松手弹簧吸附回弹 */
 @Composable
-private fun BoxScope.GlassTabPill(backdrop: Backdrop, currentTab: Int, rowWidthPx: Int) {
+private fun BoxScope.GlassTabPill(backdrop: Backdrop, position: Float, stretch: Float, rowWidthPx: Int) {
     val density = LocalDensity.current
     val dark = isDarkTheme()
-    val anim = remember { Animatable(currentTab.toFloat()) }
-    LaunchedEffect(currentTab) {
-        anim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.75f, stiffness = 400f))
-    }
     val slot = rowWidthPx / 4f
-    val pillW = slot - with(density) { 16.dp.toPx() }
+    val pillW = slot - with(density) { 16.dp.toPx() } + kotlin.math.abs(stretch)
     val pillH = with(density) { 48.dp.toPx() }
     val rowH = with(density) { 52.dp.toPx() }
     Box(
         Modifier
-            .offset { IntOffset((anim.value * slot + (slot - pillW) / 2f).roundToInt(), ((rowH - pillH) / 2f).roundToInt()) }
+            .offset {
+                IntOffset(
+                    (position * slot + (slot - pillW) / 2f + stretch / 2f).roundToInt(),
+                    ((rowH - pillH) / 2f).roundToInt(),
+                )
+            }
             .size(with(density) { pillW.toDp() }, 48.dp)
             .drawBackdrop(
                 backdrop = backdrop,
@@ -334,19 +423,20 @@ private fun BoxScope.GlassTabPill(backdrop: Backdrop, currentTab: Int, rowWidthP
 
 /** Android 11 及以下的实色滑块 */
 @Composable
-private fun BoxScope.SolidTabPill(currentTab: Int, rowWidthPx: Int) {
+private fun BoxScope.SolidTabPill(position: Float, stretch: Float, rowWidthPx: Int) {
     val density = LocalDensity.current
-    val anim = remember { Animatable(currentTab.toFloat()) }
-    LaunchedEffect(currentTab) {
-        anim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.75f, stiffness = 400f))
-    }
     val slot = rowWidthPx / 4f
-    val pillW = slot - with(density) { 16.dp.toPx() }
+    val pillW = slot - with(density) { 16.dp.toPx() } + kotlin.math.abs(stretch)
     val pillH = with(density) { 48.dp.toPx() }
     val rowH = with(density) { 52.dp.toPx() }
     Box(
         Modifier
-            .offset { IntOffset((anim.value * slot + (slot - pillW) / 2f).roundToInt(), ((rowH - pillH) / 2f).roundToInt()) }
+            .offset {
+                IntOffset(
+                    (position * slot + (slot - pillW) / 2f + stretch / 2f).roundToInt(),
+                    ((rowH - pillH) / 2f).roundToInt(),
+                )
+            }
             .size(with(density) { pillW.toDp() }, 48.dp)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f), RoundedCornerShape(18.dp)),
     )
@@ -359,12 +449,14 @@ private fun TabItem(
     index: Int,
     currentTab: Int,
     onTab: (Int) -> Unit,
+    scale: Float = 1f,
     modifier: Modifier = Modifier,
 ) {
     val selected = currentTab == index
     val idleColor = MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         modifier
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(RoundedCornerShape(16.dp))
             .clickable { onTab(index) },
         horizontalAlignment = Alignment.CenterHorizontally,
