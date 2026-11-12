@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +49,7 @@ fun SettingsTab() {
     Column(
         Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
     ) {
         Row(
@@ -62,7 +65,7 @@ fun SettingsTab() {
                 modifier = Modifier.weight(1f),
             )
             Text(
-                "拾音 v1.7",
+                "拾音 v1.8",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -189,6 +192,17 @@ fun SettingsTab() {
                 onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(stretchK = v) },
                 onValueChangeFinished = { AppStore.saveSettings() },
                 valueRange = 0f..0.5f,
+            )
+            Text(
+                "图标放大 ${(s.iconZoom * 100).toInt()}%",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Slider(
+                value = s.iconZoom,
+                onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(iconZoom = v) },
+                onValueChangeFinished = { AppStore.saveSettings() },
+                valueRange = 0f..0.3f,
             )
         }
 

@@ -223,13 +223,15 @@ private fun GlassBottomBar(
                         val lastStretch = (dragOffset * s.stretchK).coerceIn(-48f, 48f)
                         dragging = false
                         dragOffset = 0f
-                        // 拉伸柔和回弹
-                        recoil.snapTo(lastStretch)
-                        recoil.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = 180f))
-                        // 从松手位置弹簧吸附到目标 tab
+                        // 滑块立即从松手位置吸附 + 页面立即切换(不等回弹)
                         pillAnim.snapTo(raw)
                         pillAnim.animateTo(target.toFloat(), spring(dampingRatio = s.damp, stiffness = s.stiff))
                         onTab(target)
+                        // 拉伸回弹并行跑,不阻塞主流程
+                        scope.launch {
+                            recoil.snapTo(lastStretch)
+                            recoil.animateTo(0f, spring(dampingRatio = s.damp, stiffness = s.stiff))
+                        }
                     },
                 )
                 .drawBackdrop(
@@ -257,6 +259,7 @@ private fun GlassBottomBar(
                 useGlass = true,
                 position = position,
                 stretch = stretch,
+                iconZoom = s.iconZoom,
             )
         }
     }
@@ -321,11 +324,15 @@ private fun SolidBottomBar(
                         val lastStretch = (dragOffset * s.stretchK).coerceIn(-48f, 48f)
                         dragging = false
                         dragOffset = 0f
-                        recoil.snapTo(lastStretch)
-                        recoil.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = 180f))
+                        // 滑块立即从松手位置吸附 + 页面立即切换(不等回弹)
                         pillAnim.snapTo(raw)
                         pillAnim.animateTo(target.toFloat(), spring(dampingRatio = s.damp, stiffness = s.stiff))
                         onTab(target)
+                        // 拉伸回弹并行跑,不阻塞主流程
+                        scope.launch {
+                            recoil.snapTo(lastStretch)
+                            recoil.animateTo(0f, spring(dampingRatio = s.damp, stiffness = s.stiff))
+                        }
                     },
                 )
                 .clip(RoundedCornerShape(28.dp))
@@ -340,6 +347,7 @@ private fun SolidBottomBar(
                 useGlass = false,
                 position = position,
                 stretch = stretch,
+                iconZoom = s.iconZoom,
             )
         }
     }
@@ -354,6 +362,7 @@ private fun TabRow(
     useGlass: Boolean,
     position: Float,
     stretch: Float,
+    iconZoom: Float,
 ) {
     var rowWidthPx by remember { mutableIntStateOf(0) }
 
@@ -363,7 +372,7 @@ private fun TabRow(
         val pillCenter = position * slot + slot / 2f
         val center = index * slot + slot / 2f
         val dist = (kotlin.math.abs(center - pillCenter) / slot).coerceIn(0f, 1f)
-        return 1f + 0.16f * (1f - dist)
+        return 1f + iconZoom * (1f - dist)
     }
 
     Box(

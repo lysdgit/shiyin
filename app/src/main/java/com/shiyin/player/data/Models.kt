@@ -58,6 +58,7 @@ data class Settings(
     var damp: Float = 0.75f,        // 滑块动画过冲(1.0 = 无过冲,越小越弹)
     var stiff: Float = 200f,        // 滑块动画速度(越大越快)
     var stretchK: Float = 0.22f,    // 拖拽拉伸系数(0 = 不形变)
+    var iconZoom: Float = 0.16f,    // tab 图标随滑块靠近的放大倍率
     var buvid3: String? = null,
     var buvid4: String? = null,
 )
