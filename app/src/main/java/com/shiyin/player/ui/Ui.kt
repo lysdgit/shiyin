@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -252,6 +253,7 @@ private fun GlassBottomBar(
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
             TabRow(
+                onTab = onTab,
                 currentTab = currentTab,
                 backdrop = backdrop,
                 useGlass = true,
@@ -334,6 +336,7 @@ private fun SolidBottomBar(
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
             TabRow(
+                onTab = onTab,
                 currentTab = currentTab,
                 backdrop = null,
                 useGlass = false,
@@ -347,6 +350,7 @@ private fun SolidBottomBar(
 /** 底部 Tab 行:选中滑块跟随 position(拖拽中跟手,松手后弹簧吸附);图标随滑块距离轻微放大 */
 @Composable
 private fun TabRow(
+    onTab: (Int) -> Unit,
     currentTab: Int,
     backdrop: Backdrop?,
     useGlass: Boolean,
