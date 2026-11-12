@@ -62,7 +62,12 @@ fun HistoryTab() {
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("听歌记录", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Text(
+                "听歌记录",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
             Text(
                 "${entries.size} 条",
                 style = MaterialTheme.typography.labelSmall,
@@ -136,6 +141,7 @@ private fun HistoryRow(e: HistoryEntry) {
             Text(
                 e.title,
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

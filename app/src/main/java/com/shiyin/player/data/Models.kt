@@ -53,8 +53,8 @@ data class Settings(
     var quality: String = "high", // low / standard / high
     var speed: Float = 1f,
     var theme: String = "dark", // dark / light
-    var glassAlpha: Float = 0.96f,  // 玻璃面不透明度(0.5 = 很透,1.0 = 实色)
-    var glassBlur: Float = 12f,     // 模糊半径(dp)
+    var glassAlpha: Float = 0.5f,   // 玻璃面不透明度(0.5 = 很透,1.0 = 实色;用户实测 0.5 最佳)
+    var glassBlur: Float = 0f,      // 模糊半径(dp;用户实测 0 最舒服)
     var buvid3: String? = null,
     var buvid4: String? = null,
 )

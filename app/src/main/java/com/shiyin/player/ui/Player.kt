@@ -54,13 +54,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import android.os.Build
+import androidx.compose.foundation.border
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
-import com.kyant.backdrop.Backdrop
-import com.kyant.backdrop.drawBackdrop
-import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.lens
 import com.shiyin.player.R
 import com.shiyin.player.bili.BiliApi
 import com.shiyin.player.data.AppStore
@@ -81,15 +77,16 @@ fun MiniBar(onOpenPlayer: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onOpenPlayer)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Cover(track.cover, 40.dp)
+        Cover(track.cover, 36.dp)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 track.title,
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -116,12 +113,11 @@ fun MiniBar(onOpenPlayer: () -> Unit) {
 /* ================= 全屏播放页 ================= */
 
 @Composable
-fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
+fun FullPlayer(nav: NavHostController) {
     val q = AppStore.queue.value
     val track = q.tracks.getOrNull(q.index)
     val playing = PlayerBus.isPlaying.value
     val dark = isDarkTheme()
-    val gs = AppStore.settings.value
     val speedLabel = AppStore.settings.value.speed.let { s ->
         if (s % 1f == 0f) "${s.toInt()}x" else "${s}x"
     }
@@ -206,6 +202,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
             Text(
                 track?.title ?: "未在播放",
                 style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -268,15 +265,8 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                 Box(
                     Modifier
                         .size(56.dp)
-                        .drawBackdrop(
-                            backdrop = backdrop,
-                            shape = { CircleShape },
-                            effects = {
-                                blur(gs.glassBlur.coerceAtMost(14f).dp.toPx())
-                                if (Build.VERSION.SDK_INT >= 33) lens(6f.dp.toPx(), 10f.dp.toPx())
-                            },
-                            onDrawSurface = { drawRect(Pink.copy(alpha = gs.glassAlpha.coerceAtLeast(0.5f))) },
-                        )
+                        .background(Pink.copy(alpha = 0.92f), CircleShape)
+                        .border(2.dp, Color.White.copy(alpha = 0.28f), CircleShape)
                         .clickable { PlayerBus.togglePlay() },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -296,23 +286,15 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                     )
                 }
             }
-            // 副控制(玻璃胶囊)
+            // 副控制胶囊
             Box(
                 Modifier
                     .fillMaxWidth()
                     .padding(bottom = 20.dp)
-                    .drawBackdrop(
-                        backdrop = backdrop,
-                        shape = { RoundedCornerShape(24.dp) },
-                        effects = {
-                            blur(gs.glassBlur.dp.toPx())
-                            if (Build.VERSION.SDK_INT >= 33) lens(8f.dp.toPx(), 12f.dp.toPx())
-                        },
-                        // 副控制胶囊:不透明度跟随设置,保证文字清晰
-                        onDrawSurface = {
-                            if (dark) drawRect(Color(0xFF1E1E1E).copy(alpha = gs.glassAlpha))
-                            else drawRect(Color(0xFFFFFFFF).copy(alpha = gs.glassAlpha))
-                        },
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(
+                        if (dark) MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+                        else MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {

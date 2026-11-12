@@ -2,6 +2,8 @@
 
 package com.shiyin.player.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,13 +23,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.data.AppStore
+import com.shiyin.player.util.CrashLog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /** 设置 Tab:主题切换(深色/浅色)+ 玻璃参数调节,均即时生效 */
 @Composable
@@ -46,9 +55,14 @@ fun SettingsTab() {
                 .padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("设置", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             Text(
-                "拾音 v1.3",
+                "设置",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "拾音 v1.4",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -117,6 +131,12 @@ fun SettingsTab() {
                 onValueChangeFinished = { AppStore.saveSettings() },
                 valueRange = 0f..24f,
             )
+            TextButton(onClick = {
+                AppStore.settings.value = AppStore.settings.value.copy(glassAlpha = 0.5f, glassBlur = 0f)
+                AppStore.saveSettings()
+            }) {
+                Text("恢复默认参数(50% / 0dp)")
+            }
         }
 
         Spacer(Modifier.height(16.dp))
@@ -140,6 +160,29 @@ fun SettingsTab() {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // 有闪退记录时提供导出(给开发者排查)
+            val ctx = LocalContext.current
+            val crashFile = remember { CrashLog.file(ctx) }
+            if (crashFile.exists()) {
+                Spacer(Modifier.height(8.dp))
+                val exportScope = rememberCoroutineScope()
+                val exportLog = rememberLauncherForActivityResult(
+                    ActivityResultContracts.CreateDocument("text/plain")
+                ) { uri ->
+                    if (uri != null && crashFile.exists()) {
+                        exportScope.launch(Dispatchers.IO) {
+                            runCatching {
+                                ctx.contentResolver.openOutputStream(uri)?.use { os ->
+                                    os.write(crashFile.readText().toByteArray(Charsets.UTF_8))
+                                }
+                            }
+                        }
+                    }
+                }
+                TextButton(onClick = { exportLog.launch("shiyin-crash.log") }) {
+                    Text("导出诊断日志(应用闪退记录)", color = MaterialTheme.colorScheme.error)
+                }
+            }
         }
     }
 }

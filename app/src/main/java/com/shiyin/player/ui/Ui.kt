@@ -111,7 +111,7 @@ fun ShiyinApp() {
                     GalbumPage(nav, id)
                 }
                 composable("player") {
-                    FullPlayer(nav, backdrop)
+                    FullPlayer(nav)
                 }
             }
 
@@ -157,9 +157,12 @@ private fun GlassBottomBar(
     val s = AppStore.settings.value
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
-    Box(
+    // dock 式悬浮:避让手势条 + 左右留边,面板本体为全圆角胶囊
+    Column(
         modifier
             .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 14.dp, vertical = 8.dp)
             .onGloballyPositioned { coords ->
                 BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
             },
@@ -169,7 +172,7 @@ private fun GlassBottomBar(
                 .fillMaxWidth()
                 .drawBackdrop(
                     backdrop = backdrop,
-                    shape = { RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp) },
+                    shape = { RoundedCornerShape(28.dp) },
                     effects = {
                         vibrancy()
                         blur(glassBlur.dp.toPx())
@@ -182,7 +185,7 @@ private fun GlassBottomBar(
                         else drawRect(Color(0xFFFBFBFB).copy(alpha = glassAlpha))
                     },
                 )
-                .safeContentPadding(),
+                .padding(horizontal = 4.dp, vertical = 2.dp),
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
             TabRow(currentTab, onTab)
@@ -201,20 +204,28 @@ private fun SolidBottomBar(
     Column(
         modifier
             .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 14.dp, vertical = 8.dp)
             .onGloballyPositioned { coords ->
                 BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
-            }
-            .background(MaterialTheme.colorScheme.surface)
-            .windowInsetsPadding(WindowInsets.navigationBars),
+            },
     ) {
-        MiniBar(onOpenPlayer = onOpenPlayer)
-        TabRow(currentTab, onTab)
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(28.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 4.dp, vertical = 2.dp),
+        ) {
+            MiniBar(onOpenPlayer = onOpenPlayer)
+            TabRow(currentTab, onTab)
+        }
     }
 }
 
 @Composable
 private fun TabRow(currentTab: Int, onTab: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().height(56.dp)) {
+    Row(Modifier.fillMaxWidth().height(52.dp)) {
         TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
         TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
         TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
@@ -244,7 +255,7 @@ private fun TabItem(
             painterResource(iconRes),
             contentDescription = label,
             tint = if (selected) MaterialTheme.colorScheme.primary else idleColor,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.height(2.dp))
         Text(
@@ -353,6 +364,7 @@ fun SubTopBar(title: String, onBack: () -> Unit, trailing: @Composable (() -> Un
         Text(
             title,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),

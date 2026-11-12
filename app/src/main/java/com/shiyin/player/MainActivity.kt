@@ -11,6 +11,7 @@ import com.shiyin.player.data.AppStore
 import com.shiyin.player.data.PlayHistory
 import com.shiyin.player.player.PlayerBus
 import com.shiyin.player.ui.ShiyinApp
+import com.shiyin.player.util.CrashLog
 
 class MainActivity : ComponentActivity() {
 
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        CrashLog.install(this)
         AppStore.load(this)
         PlayHistory.load(this)
         PlayerBus.connect(this)

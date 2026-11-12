@@ -79,7 +79,12 @@ fun PlaylistsTab(nav: NavHostController) {
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("歌单", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Text(
+                "歌单",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
             IconButton(onClick = { creating = true }) {
                 Icon(painterResource(R.drawable.ic_plus), contentDescription = "新建歌单")
             }
@@ -134,6 +139,7 @@ fun PlaylistsTab(nav: NavHostController) {
                             Text(
                                 g.title,
                                 style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -274,6 +280,7 @@ fun GalbumPage(nav: NavHostController, id: String) {
                 Text(
                     g.title,
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -388,7 +395,11 @@ fun UserPage(nav: NavHostController, mid: Long) {
                 Avatar(user.avatar, 56.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(user.name, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        user.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                     Text(
                         "${BiliApi.formatCount(user.fans)}粉丝 · ${user.videos}个作品",
                         style = MaterialTheme.typography.bodySmall,
