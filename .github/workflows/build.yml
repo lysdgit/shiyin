@@ -46,7 +46,16 @@ jobs:
           fi
 
       - name: 构建 Release APK
-        run: gradle assembleRelease --no-daemon
+        run: gradle assembleRelease --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+
+      # 构建失败时把 Kotlin 编译错误提取到运行页顶部 Summary,免翻日志
+      - name: 失败时提取编译错误
+        if: failure()
+        run: |
+          if [ -f build.log ]; then
+            echo "### 编译/构建错误" >> $GITHUB_STEP_SUMMARY
+            grep -E "^e: |error: |What went wrong" build.log | head -40 >> $GITHUB_STEP_SUMMARY || echo "(未匹配到具体错误行,请展开上面的构建步骤查看完整日志)" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: 上传 APK(压缩包形式)
         uses: actions/upload-artifact@v7
