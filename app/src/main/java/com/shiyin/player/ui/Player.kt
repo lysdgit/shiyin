@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -148,7 +149,7 @@ fun FullPlayer(nav: NavHostController) {
                 detectVerticalDragGestures(
                     onVerticalDrag = { _, dy -> dragAccum += dy },
                     onDragEnd = {
-                        if (dragAccum > 140f) nav.popBackStack()
+                        if (dragAccum > 80f) nav.popBackStack()
                         dragAccum = 0f
                     },
                 )
@@ -168,11 +169,27 @@ fun FullPlayer(nav: NavHostController) {
                     .height(56.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = { nav.popBackStack() }) {
+                IconButton(
+                    onClick = { nav.popBackStack() },
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(
+                            Color.White.copy(alpha = if (dark) 0.12f else 0.6f),
+                            CircleShape,
+                        )
+                        .border(
+                            1.dp,
+                            Color.White.copy(alpha = if (dark) 0.25f else 0.85f),
+                            CircleShape,
+                        ),
+                ) {
                     Icon(
                         painterResource(R.drawable.ic_back),
                         contentDescription = "收起",
-                        modifier = Modifier.graphicsLayer(rotationZ = -90f),
+                        tint = if (dark) Color.White else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .graphicsLayer(rotationZ = -90f)
+                            .size(20.dp),
                     )
                 }
                 Spacer(Modifier.weight(1f))
@@ -286,15 +303,22 @@ fun FullPlayer(nav: NavHostController) {
                     )
                 }
             }
-            // 副控制胶囊
+            // 副控制胶囊(高光渐变模拟玻璃质感)
             Box(
                 Modifier
                     .fillMaxWidth()
                     .padding(bottom = 20.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(
-                        if (dark) MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
-                        else MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
+                        Brush.verticalGradient(
+                            if (dark) listOf(Color.White.copy(alpha = 0.16f), Color.White.copy(alpha = 0.05f))
+                            else listOf(Color.White.copy(alpha = 0.85f), Color.White.copy(alpha = 0.55f))
+                        )
+                    )
+                    .border(
+                        1.dp,
+                        Color.White.copy(alpha = if (dark) 0.22f else 0.75f),
+                        RoundedCornerShape(24.dp),
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {

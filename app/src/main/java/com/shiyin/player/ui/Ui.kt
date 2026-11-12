@@ -169,6 +169,7 @@ private fun GlassBottomBar(
     val s = AppStore.settings.value
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
+    var dragX by remember { mutableFloatStateOf(0f) }
     // dock 式悬浮:避让手势条 + 左右留边,面板本体为全圆角胶囊
     Column(
         modifier
@@ -182,6 +183,20 @@ private fun GlassBottomBar(
         Column(
             Modifier
                 .fillMaxWidth()
+                .pointerInput(currentTab) {
+                    // 整个 dock 面板都响应左右滑动切 tab
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { change, _ ->
+                            change.consume()
+                            dragX += change.positionChange().x
+                        },
+                        onDragEnd = {
+                            if (dragX < -90f) onTab((currentTab + 1).coerceAtMost(3))
+                            else if (dragX > 90f) onTab((currentTab - 1).coerceAtLeast(0))
+                            dragX = 0f
+                        },
+                    )
+                }
                 .drawBackdrop(
                     backdrop = backdrop,
                     shape = { RoundedCornerShape(28.dp) },
@@ -197,7 +212,7 @@ private fun GlassBottomBar(
                         else drawRect(Color(0xFFFBFBFB).copy(alpha = glassAlpha))
                     },
                 )
-                .padding(horizontal = 4.dp, vertical = 2.dp),
+                .padding(horizontal = 6.dp, vertical = 6.dp),
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
             TabRow(currentTab = currentTab, onTab = onTab, backdrop = backdrop, useGlass = true)
@@ -213,6 +228,7 @@ private fun SolidBottomBar(
     onOpenPlayer: () -> Unit,
 ) {
     val density = LocalDensity.current
+    var dragX by remember { mutableFloatStateOf(0f) }
     Column(
         modifier
             .fillMaxWidth()
@@ -225,9 +241,22 @@ private fun SolidBottomBar(
         Column(
             Modifier
                 .fillMaxWidth()
+                .pointerInput(currentTab) {
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { change, _ ->
+                            change.consume()
+                            dragX += change.positionChange().x
+                        },
+                        onDragEnd = {
+                            if (dragX < -90f) onTab((currentTab + 1).coerceAtMost(3))
+                            else if (dragX > 90f) onTab((currentTab - 1).coerceAtLeast(0))
+                            dragX = 0f
+                        },
+                    )
+                }
                 .clip(RoundedCornerShape(28.dp))
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 4.dp, vertical = 2.dp),
+                .padding(horizontal = 6.dp, vertical = 6.dp),
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
             TabRow(currentTab = currentTab, onTab = onTab, backdrop = null, useGlass = false)
@@ -245,7 +274,6 @@ private fun TabRow(
 ) {
     val density = LocalDensity.current
     var rowWidthPx by remember { mutableIntStateOf(0) }
-    var dragX by remember { mutableFloatStateOf(0f) }
 
     Box(
         Modifier
@@ -261,24 +289,7 @@ private fun TabRow(
                 SolidTabPill(currentTab, rowWidthPx)
             }
         }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .pointerInput(currentTab) {
-                    detectHorizontalDragGestures(
-                        onHorizontalDrag = { change, _ ->
-                            change.consume()
-                            dragX += change.positionChange().x
-                        },
-                        onDragEnd = {
-                            if (dragX < -90f) onTab((currentTab + 1).coerceAtMost(3))
-                            else if (dragX > 90f) onTab((currentTab - 1).coerceAtLeast(0))
-                            dragX = 0f
-                        },
-                    )
-                },
-        ) {
+        Row(Modifier.fillMaxWidth().height(52.dp)) {
             TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
             TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
             TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))
@@ -298,12 +309,12 @@ private fun BoxScope.GlassTabPill(backdrop: Backdrop, currentTab: Int, rowWidthP
     }
     val slot = rowWidthPx / 4f
     val pillW = slot - with(density) { 16.dp.toPx() }
-    val pillH = with(density) { 44.dp.toPx() }
+    val pillH = with(density) { 48.dp.toPx() }
     val rowH = with(density) { 52.dp.toPx() }
     Box(
         Modifier
             .offset { IntOffset((anim.value * slot + (slot - pillW) / 2f).roundToInt(), ((rowH - pillH) / 2f).roundToInt()) }
-            .size(with(density) { pillW.toDp() }, 44.dp)
+            .size(with(density) { pillW.toDp() }, 48.dp)
             .drawBackdrop(
                 backdrop = backdrop,
                 shape = { RoundedCornerShape(18.dp) },
@@ -313,8 +324,8 @@ private fun BoxScope.GlassTabPill(backdrop: Backdrop, currentTab: Int, rowWidthP
                     if (Build.VERSION.SDK_INT >= 33) lens(6f.dp.toPx(), 10f.dp.toPx())
                 },
                 onDrawSurface = {
-                    if (dark) drawRect(Color(0xFF2E2E2E).copy(alpha = 0.85f))
-                    else drawRect(Color(0xFFFFFFFF).copy(alpha = 0.85f))
+                    if (dark) drawRect(Color(0xFF2E2E2E).copy(alpha = 0.6f))
+                    else drawRect(Color(0xFFFFFFFF).copy(alpha = 0.6f))
                     drawRect(Pink.copy(alpha = 0.22f))
                 },
             ),
@@ -331,12 +342,12 @@ private fun BoxScope.SolidTabPill(currentTab: Int, rowWidthPx: Int) {
     }
     val slot = rowWidthPx / 4f
     val pillW = slot - with(density) { 16.dp.toPx() }
-    val pillH = with(density) { 44.dp.toPx() }
+    val pillH = with(density) { 48.dp.toPx() }
     val rowH = with(density) { 52.dp.toPx() }
     Box(
         Modifier
             .offset { IntOffset((anim.value * slot + (slot - pillW) / 2f).roundToInt(), ((rowH - pillH) / 2f).roundToInt()) }
-            .size(with(density) { pillW.toDp() }, 44.dp)
+            .size(with(density) { pillW.toDp() }, 48.dp)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f), RoundedCornerShape(18.dp)),
     )
 }
