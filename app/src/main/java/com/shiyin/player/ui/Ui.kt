@@ -154,6 +154,9 @@ private fun GlassBottomBar(
 ) {
     val density = LocalDensity.current
     val dark = isDarkTheme()
+    val s = AppStore.settings.value
+    val glassAlpha = s.glassAlpha
+    val glassBlur = s.glassBlur
     Box(
         modifier
             .fillMaxWidth()
@@ -169,14 +172,14 @@ private fun GlassBottomBar(
                     shape = { RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp) },
                     effects = {
                         vibrancy()
-                        blur(12f.dp.toPx())
+                        blur(glassBlur.dp.toPx())
                         // 折射(lens)基于 AGSL RuntimeShader,仅 Android 13+ 支持完整效果
                         if (Build.VERSION.SDK_INT >= 33) lens(12f.dp.toPx(), 24f.dp.toPx())
                     },
-                    // tab 区独立实底(96%),只留轻微玻璃质感,保证文字始终清晰
+                    // 不透明度可在设置页调,越低玻璃感越强,越高文字越清晰
                     onDrawSurface = {
-                        if (dark) drawRect(Color(0xFF181818).copy(alpha = 0.96f))
-                        else drawRect(Color(0xFFFBFBFB).copy(alpha = 0.96f))
+                        if (dark) drawRect(Color(0xFF181818).copy(alpha = glassAlpha))
+                        else drawRect(Color(0xFFFBFBFB).copy(alpha = glassAlpha))
                     },
                 )
                 .safeContentPadding(),
@@ -211,7 +214,7 @@ private fun SolidBottomBar(
 
 @Composable
 private fun TabRow(currentTab: Int, onTab: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().height(60.dp)) {
+    Row(Modifier.fillMaxWidth().height(56.dp)) {
         TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, Modifier.weight(1f))
         TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, Modifier.weight(1f))
         TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, Modifier.weight(1f))

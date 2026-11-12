@@ -81,10 +81,10 @@ fun MiniBar(onOpenPlayer: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onOpenPlayer)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Cover(track.cover, 44.dp)
+        Cover(track.cover, 40.dp)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(
@@ -121,6 +121,7 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
     val track = q.tracks.getOrNull(q.index)
     val playing = PlayerBus.isPlaying.value
     val dark = isDarkTheme()
+    val gs = AppStore.settings.value
     val speedLabel = AppStore.settings.value.speed.let { s ->
         if (s % 1f == 0f) "${s.toInt()}x" else "${s}x"
     }
@@ -271,10 +272,10 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                             backdrop = backdrop,
                             shape = { CircleShape },
                             effects = {
-                                blur(6f.dp.toPx())
+                                blur(gs.glassBlur.coerceAtMost(14f).dp.toPx())
                                 if (Build.VERSION.SDK_INT >= 33) lens(6f.dp.toPx(), 10f.dp.toPx())
                             },
-                            onDrawSurface = { drawRect(Pink.copy(alpha = 0.85f)) },
+                            onDrawSurface = { drawRect(Pink.copy(alpha = gs.glassAlpha.coerceAtLeast(0.5f))) },
                         )
                         .clickable { PlayerBus.togglePlay() },
                     contentAlignment = Alignment.Center,
@@ -304,13 +305,13 @@ fun FullPlayer(nav: NavHostController, backdrop: Backdrop) {
                         backdrop = backdrop,
                         shape = { RoundedCornerShape(24.dp) },
                         effects = {
-                            blur(8f.dp.toPx())
+                            blur(gs.glassBlur.dp.toPx())
                             if (Build.VERSION.SDK_INT >= 33) lens(8f.dp.toPx(), 12f.dp.toPx())
                         },
-                        // 副控制胶囊同样接近实底,保证文字清晰
+                        // 副控制胶囊:不透明度跟随设置,保证文字清晰
                         onDrawSurface = {
-                            if (dark) drawRect(Color(0xFF1E1E1E).copy(alpha = 0.95f))
-                            else drawRect(Color(0xFFFFFFFF).copy(alpha = 0.95f))
+                            if (dark) drawRect(Color(0xFF1E1E1E).copy(alpha = gs.glassAlpha))
+                            else drawRect(Color(0xFFFFFFFF).copy(alpha = gs.glassAlpha))
                         },
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp),

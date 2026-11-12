@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,10 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.data.AppStore
 
-/** 设置 Tab:主题切换(深色/浅色,即时生效) */
+/** 设置 Tab:主题切换(深色/浅色)+ 玻璃参数调节,均即时生效 */
 @Composable
 fun SettingsTab() {
-    val theme = AppStore.settings.value.theme
+    val s = AppStore.settings.value
+    val theme = s.theme
 
     Column(
         Modifier
@@ -46,7 +48,7 @@ fun SettingsTab() {
         ) {
             Text("设置", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             Text(
-                "拾音 v1.2",
+                "拾音 v1.3",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -72,6 +74,48 @@ fun SettingsTab() {
                 "切换后立即生效",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 玻璃效果(拖动时底部栏实时变化)
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp)
+        ) {
+            Text("玻璃效果", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "调小不透明度玻璃感更强,调大文字更清晰;切到「搜索」页滚动列表即可对比观察",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "不透明度 ${String.format("%.0f%%", s.glassAlpha * 100)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Slider(
+                value = s.glassAlpha,
+                onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(glassAlpha = v) },
+                onValueChangeFinished = { AppStore.saveSettings() },
+                valueRange = 0.5f..1f,
+            )
+            Text(
+                "模糊强度 ${s.glassBlur.toInt()}dp",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Slider(
+                value = s.glassBlur,
+                onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(glassBlur = v) },
+                onValueChangeFinished = { AppStore.saveSettings() },
+                valueRange = 0f..24f,
             )
         }
 
