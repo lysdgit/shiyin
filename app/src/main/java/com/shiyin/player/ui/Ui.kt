@@ -36,7 +36,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -173,26 +172,21 @@ private fun GlassBottomBar(
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
     val scope = rememberCoroutineScope()
-    val pillAnim = remember { Animatable(0f) }
+    val pillAnim = remember { Animatable(currentTab.toFloat()) } // 初始即对齐当前 tab
     val recoil = remember { Animatable(0f) }
     var panelInnerW by remember { mutableIntStateOf(0) }
     var dragStartTab by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    var floatPos by remember { mutableFloatStateOf(0f) }
-    var floatPosInit by remember { mutableStateOf(false) }
 
     val slot = if (panelInnerW > 0) panelInnerW / 4f else 0f
-    LaunchedEffect(currentTab, dragging) {
-        if (!dragging) {
-            if (floatPosInit) pillAnim.snapTo(floatPos)
-            pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
-        } else {
-            pillAnim.snapTo(dragStartTab.toFloat())
-        }
+    // 点 tab:滑块从当前位置平滑滑过去,绝不跳回旧位置
+    val onTabAnimated: (Int) -> Unit = { target ->
+        scope.launch { pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.75f, stiffness = 200f)) }
+        onTab(target)
     }
     val position = if (dragging && slot > 0) dragStartTab + dragOffset / slot else pillAnim.value
-    val stretch = if (dragging) (dragOffset * 0.3f).coerceIn(-64f, 64f) else recoil.value
+    val stretch = if (dragging) (dragOffset * 0.22f).coerceIn(-48f, 48f) else recoil.value
 
     // dock 式悬浮:避让手势条 + 左右留边,面板本体为全圆角胶囊
     Column(
@@ -225,13 +219,15 @@ private fun GlassBottomBar(
                     onDragStopped = {
                         val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
                         val target = raw.roundToInt().coerceIn(0, 3)
-                        val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
-                        floatPosInit = true
+                        val lastStretch = (dragOffset * 0.22f).coerceIn(-48f, 48f)
                         dragging = false
                         dragOffset = 0f
-                        // 拉伸回弹
+                        // 拉伸柔和回弹
                         recoil.snapTo(lastStretch)
-                        recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
+                        recoil.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = 180f))
+                        // 从松手位置弹簧吸附到目标 tab
+                        pillAnim.snapTo(raw)
+                        pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.75f, stiffness = 200f))
                         onTab(target)
                     },
                 )
@@ -254,7 +250,7 @@ private fun GlassBottomBar(
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
             TabRow(
-                onTab = onTab,
+                onTab = onTabAnimated,
                 currentTab = currentTab,
                 backdrop = backdrop,
                 useGlass = true,
@@ -274,26 +270,21 @@ private fun SolidBottomBar(
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
-    val pillAnim = remember { Animatable(0f) }
+    val pillAnim = remember { Animatable(currentTab.toFloat()) } // 初始即对齐当前 tab
     val recoil = remember { Animatable(0f) }
     var panelInnerW by remember { mutableIntStateOf(0) }
     var dragStartTab by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    var floatPos by remember { mutableFloatStateOf(0f) }
-    var floatPosInit by remember { mutableStateOf(false) }
 
     val slot = if (panelInnerW > 0) panelInnerW / 4f else 0f
-    LaunchedEffect(currentTab, dragging) {
-        if (!dragging) {
-            if (floatPosInit) pillAnim.snapTo(floatPos)
-            pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
-        } else {
-            pillAnim.snapTo(dragStartTab.toFloat())
-        }
+    // 点 tab:滑块从当前位置平滑滑过去,绝不跳回旧位置
+    val onTabAnimated: (Int) -> Unit = { target ->
+        scope.launch { pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.75f, stiffness = 200f)) }
+        onTab(target)
     }
     val position = if (dragging && slot > 0) dragStartTab + dragOffset / slot else pillAnim.value
-    val stretch = if (dragging) (dragOffset * 0.3f).coerceIn(-64f, 64f) else recoil.value
+    val stretch = if (dragging) (dragOffset * 0.22f).coerceIn(-48f, 48f) else recoil.value
 
     Column(
         modifier
@@ -323,14 +314,15 @@ private fun SolidBottomBar(
                         dragOffset = 0f
                     },
                     onDragStopped = {
-                        floatPos = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
-                        val target = floatPos.roundToInt().coerceIn(0, 3)
-                        val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
-                        floatPosInit = true
+                        val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
+                        val target = raw.roundToInt().coerceIn(0, 3)
+                        val lastStretch = (dragOffset * 0.22f).coerceIn(-48f, 48f)
                         dragging = false
                         dragOffset = 0f
                         recoil.snapTo(lastStretch)
-                        recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
+                        recoil.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = 180f))
+                        pillAnim.snapTo(raw)
+                        pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.75f, stiffness = 200f))
                         onTab(target)
                     },
                 )
@@ -340,7 +332,7 @@ private fun SolidBottomBar(
         ) {
             MiniBar(onOpenPlayer = onOpenPlayer)
             TabRow(
-                onTab = onTab,
+                onTab = onTabAnimated,
                 currentTab = currentTab,
                 backdrop = null,
                 useGlass = false,
