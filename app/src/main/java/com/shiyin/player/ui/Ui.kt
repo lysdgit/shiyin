@@ -7,7 +7,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -48,8 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -179,8 +179,24 @@ private fun GlassBottomBar(
     var dragStartTab by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
+    var floatPos by remember { mutableFloatStateOf(0f) }
+    var floatPosInit by remember { mutableStateOf(false) }
 
     val slot = if (panelInnerW > 0) panelInnerW / 4f else 0f
+    LaunchedEffect(currentTab, dragging) {
+        if (!dragging) {
+            if (floatPosInit) pillAnim.snapTo(floatPos)
+            pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+        } else {
+            pillAnim.snapTo(dragStartTab.toFloat())
+        }
+    }
+    LaunchedEffect(currentTab) {
+        if (!dragging) pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+    }
+    LaunchedEffect(currentTab) {
+        if (!dragging) pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+    }
     val position = if (dragging && slot > 0) dragStartTab + dragOffset / slot else pillAnim.value
     val stretch = if (dragging) (dragOffset * 0.3f).coerceIn(-64f, 64f) else recoil.value
 
@@ -198,42 +214,29 @@ private fun GlassBottomBar(
             Modifier
                 .fillMaxWidth()
                 .onGloballyPositioned { panelInnerW = it.size.width }
-                .pointerInput(currentTab) {
-                    // 整个 dock 面板都响应左右拖拽:玻璃滑块跟手形变,松手吸附最近 tab
-                    detectHorizontalDragGestures(
-                        onDragStart = { _ ->
-                            dragging = true
-                            dragStartTab = currentTab
-                            dragOffset = 0f
-                            scope.launch { pillAnim.snapTo(currentTab.toFloat()) }
-                        },
-                        onHorizontalDrag = { change, _ ->
-                            if (dragging) {
-                                change.consume()
-                                dragOffset += change.positionChange().x
-                            }
-                        },
-                        onDragEnd = {
-                            if (!dragging) return@detectHorizontalDragGestures
-                            val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
-                            val target = raw.roundToInt().coerceIn(0, 3)
-                            val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
-                            dragging = false
-                            dragOffset = 0f
-                            // 拉伸回弹
-                            scope.launch {
-                                recoil.snapTo(lastStretch)
-                                recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
-                            }
-                            if (target != currentTab) onTab(target)
-                            // 滑块从松手位置弹簧吸附到目标 tab
-                            scope.launch {
-                                pillAnim.snapTo(raw)
-                                pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
-                            }
-                        },
-                    )
-                }
+                .draggable(
+                    orientation = Orientation.Horizontal,
+                    state = rememberDraggableState { delta ->
+                        if (dragging) dragOffset += delta
+                    },
+                    onDragStarted = {
+                        dragging = true
+                        dragStartTab = currentTab
+                        dragOffset = 0f
+                    },
+                    onDragStopped = {
+                        val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
+                        val target = raw.roundToInt().coerceIn(0, 3)
+                        val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
+                        floatPosInit = true
+                        dragging = false
+                        dragOffset = 0f
+                        // 拉伸回弹
+                        recoil.snapTo(lastStretch)
+                        recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
+                        onTab(target)
+                    },
+                )
                 .drawBackdrop(
                     backdrop = backdrop,
                     shape = { RoundedCornerShape(28.dp) },
@@ -279,8 +282,18 @@ private fun SolidBottomBar(
     var dragStartTab by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
+    var floatPos by remember { mutableFloatStateOf(0f) }
+    var floatPosInit by remember { mutableStateOf(false) }
 
     val slot = if (panelInnerW > 0) panelInnerW / 4f else 0f
+    LaunchedEffect(currentTab, dragging) {
+        if (!dragging) {
+            if (floatPosInit) pillAnim.snapTo(floatPos)
+            pillAnim.animateTo(currentTab.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+        } else {
+            pillAnim.snapTo(dragStartTab.toFloat())
+        }
+    }
     val position = if (dragging && slot > 0) dragStartTab + dragOffset / slot else pillAnim.value
     val stretch = if (dragging) (dragOffset * 0.3f).coerceIn(-64f, 64f) else recoil.value
 
@@ -297,39 +310,29 @@ private fun SolidBottomBar(
             Modifier
                 .fillMaxWidth()
                 .onGloballyPositioned { panelInnerW = it.size.width }
-                .pointerInput(currentTab) {
-                    detectHorizontalDragGestures(
-                        onDragStart = { _ ->
-                            dragging = true
-                            dragStartTab = currentTab
-                            dragOffset = 0f
-                            scope.launch { pillAnim.snapTo(currentTab.toFloat()) }
-                        },
-                        onHorizontalDrag = { change, _ ->
-                            if (dragging) {
-                                change.consume()
-                                dragOffset += change.positionChange().x
-                            }
-                        },
-                        onDragEnd = {
-                            if (!dragging) return@detectHorizontalDragGestures
-                            val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
-                            val target = raw.roundToInt().coerceIn(0, 3)
-                            val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
-                            dragging = false
-                            dragOffset = 0f
-                            scope.launch {
-                                recoil.snapTo(lastStretch)
-                                recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
-                            }
-                            if (target != currentTab) onTab(target)
-                            scope.launch {
-                                pillAnim.snapTo(raw)
-                                pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
-                            }
-                        },
-                    )
-                }
+                .draggable(
+                    orientation = Orientation.Horizontal,
+                    state = rememberDraggableState { delta ->
+                        if (dragging) dragOffset += delta
+                    },
+                    onDragStarted = {
+                        dragging = true
+                        dragStartTab = currentTab
+                        dragOffset = 0f
+                    },
+                    onDragStopped = {
+                        val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
+                        val target = raw.roundToInt().coerceIn(0, 3)
+                        val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
+                        dragging = false
+                        dragOffset = 0f
+                        recoil.snapTo(lastStretch)
+                        recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
+                        if (target != currentTab) onTab(target)
+                        pillAnim.snapTo(raw)
+                        pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+                    },
+                )
                 .clip(RoundedCornerShape(28.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 6.dp, vertical = 6.dp),
@@ -382,7 +385,10 @@ private fun TabRow(
                 SolidTabPill(position, stretch, rowWidthPx)
             }
         }
-        Row(Modifier.fillMaxWidth().height(52.dp)) {
+        Row(
+            Modifier.fillMaxWidth().height(52.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             TabItem("搜索", R.drawable.ic_search, 0, currentTab, onTab, tabScale(0), Modifier.weight(1f))
             TabItem("歌单", R.drawable.ic_note, 1, currentTab, onTab, tabScale(1), Modifier.weight(1f))
             TabItem("记录", R.drawable.ic_history, 2, currentTab, onTab, tabScale(2), Modifier.weight(1f))
