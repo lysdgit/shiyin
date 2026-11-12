@@ -321,16 +321,15 @@ private fun SolidBottomBar(
                         dragOffset = 0f
                     },
                     onDragStopped = {
-                        val raw = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
-                        val target = raw.roundToInt().coerceIn(0, 3)
+                        floatPos = if (slot > 0) dragStartTab + dragOffset / slot else dragStartTab.toFloat()
+                        val target = floatPos.roundToInt().coerceIn(0, 3)
                         val lastStretch = (dragOffset * 0.3f).coerceIn(-64f, 64f)
+                        floatPosInit = true
                         dragging = false
                         dragOffset = 0f
                         recoil.snapTo(lastStretch)
                         recoil.animateTo(0f, spring(dampingRatio = 0.45f, stiffness = 240f))
-                        if (target != currentTab) onTab(target)
-                        pillAnim.snapTo(raw)
-                        pillAnim.animateTo(target.toFloat(), spring(dampingRatio = 0.6f, stiffness = 260f))
+                        onTab(target)
                     },
                 )
                 .clip(RoundedCornerShape(28.dp))
