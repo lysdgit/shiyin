@@ -55,6 +55,14 @@ jobs:
           if [ -f build.log ]; then
             echo "### 编译/构建错误" >> $GITHUB_STEP_SUMMARY
             grep -E "^e: |error: |What went wrong" build.log | head -40 >> $GITHUB_STEP_SUMMARY || echo "(未匹配到具体错误行,请展开上面的构建步骤查看完整日志)" >> $GITHUB_STEP_SUMMARY
+            grep -E "^e: |error: " build.log | head -40 > ci-errors.txt || true
+            if [ -s ci-errors.txt ]; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add ci-errors.txt
+              git commit -m "ci: 自动记录编译错误(供开发排查)"
+              git push
+            fi
           fi
 
       - name: 上传 APK(压缩包形式)
