@@ -55,6 +55,9 @@ data class Settings(
     var theme: String = "dark", // dark / light
     var glassAlpha: Float = 0.5f,   // 玻璃面不透明度(0.5 = 很透,1.0 = 实色;用户实测 0.5 最佳)
     var glassBlur: Float = 0f,      // 模糊半径(dp;用户实测 0 最舒服)
+    var damp: Float = 0.75f,        // 滑块动画过冲(1.0 = 无过冲,越小越弹)
+    var stiff: Float = 200f,        // 滑块动画速度(越大越快)
+    var stretchK: Float = 0.22f,    // 拖拽拉伸系数(0 = 不形变)
     var buvid3: String? = null,
     var buvid4: String? = null,
 )

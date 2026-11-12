@@ -17,8 +17,8 @@ android {
         applicationId = "com.shiyin.player"
         minSdk = 26
         targetSdk = 37
-        versionCode = 9
-        versionName = "1.6"
+        versionCode = 10
+        versionName = "1.7"
     }
 
     buildFeatures {

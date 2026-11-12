@@ -62,7 +62,7 @@ fun SettingsTab() {
                 modifier = Modifier.weight(1f),
             )
             Text(
-                "拾音 v1.6",
+                "拾音 v1.7",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -137,6 +137,59 @@ fun SettingsTab() {
             }) {
                 Text("恢复默认参数(50% / 0dp)")
             }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 滑块动画参数(点 tab / 拖拽吸附的弹簧手感)
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp)
+        ) {
+            Text("滑块动画", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "切到「搜索」页点 tab 试手感;过冲越小越弹,1.0 无过冲",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "过冲 ${String.format("%.2f", s.damp)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Slider(
+                value = s.damp,
+                onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(damp = v) },
+                onValueChangeFinished = { AppStore.saveSettings() },
+                valueRange = 0.4f..1f,
+            )
+            Text(
+                "速度 ${s.stiff.toInt()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Slider(
+                value = s.stiff,
+                onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(stiff = v) },
+                onValueChangeFinished = { AppStore.saveSettings() },
+                valueRange = 100f..500f,
+            )
+            Text(
+                "拉伸 ${(s.stretchK * 100).toInt()}%",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Slider(
+                value = s.stretchK,
+                onValueChange = { v -> AppStore.settings.value = AppStore.settings.value.copy(stretchK = v) },
+                onValueChangeFinished = { AppStore.saveSettings() },
+                valueRange = 0f..0.5f,
+            )
         }
 
         Spacer(Modifier.height(16.dp))
