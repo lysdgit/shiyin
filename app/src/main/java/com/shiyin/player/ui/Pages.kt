@@ -59,6 +59,11 @@ import com.shiyin.player.data.Track
 import com.shiyin.player.data.Galbum
 import com.shiyin.player.player.PlayerBus
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -232,12 +237,35 @@ fun GalbumPage(nav: NavHostController, id: String) {
         if (uri == null || g == null) return@rememberLauncherForActivityResult
         scope.launch(Dispatchers.IO) {
             runCatching {
+                // 导出前自动补齐缺失的发布时间(每首一个 view 请求,并发 3)
+                val need = g.tracks.filter { it.pubdate <= 0L && it.hasRef() }
+                if (need.isNotEmpty()) {
+                    val sem = Semaphore(3)
+                    val updated = coroutineScope {
+                        need.map { t ->
+                            async {
+                                sem.withPermit {
+                                    val info = runCatching { BiliApi.videoInfo(t.bvid, t.aid) }.getOrNull()
+                                    if (info != null) t.copy(pubdate = info.pubdate) else t
+                                }
+                            }
+                        }.awaitAll()
+                    }
+                    updated.forEach { u ->
+                        val idx = g.tracks.indexOfFirst { it.key == u.key }
+                        if (idx >= 0) g.tracks[idx] = u
+                    }
+                    AppStore.saveGalbums()
+                }
                 ctx.contentResolver.openOutputStream(uri)?.use { os ->
                     os.write(Json.encodeToString(g).toByteArray(Charsets.UTF_8))
                 }
             }
             launch(Dispatchers.Main) {
-                android.widget.Toast.makeText(ctx, "已导出", android.widget.Toast.LENGTH_SHORT).show()
+                val note = if (need.isNotEmpty()) {
+                    "已导出(补齐 ${need.size} 首的发布时间)"
+                } else "已导出"
+                android.widget.Toast.makeText(ctx, note, android.widget.Toast.LENGTH_SHORT).show()
             }
         }
     }
