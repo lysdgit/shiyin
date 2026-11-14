@@ -81,6 +81,15 @@ app/src/main/java/com/shiyin/player/
 > 首次构建会自动生成签名密钥 `keystore.jks` 并提交回仓库,保证后续每次构建签名一致,
 > 可以直接覆盖安装、歌单数据不丢。私有仓库的 Actions 每月有免费额度(个人使用绰绰有余)。
 
+## 致谢与参考
+
+播放与音源解析的实现方法参考了 [MusicFree 插件 · bilibili 源码](https://github.com/maotoumao/MusicFreePlugins/tree/master/plugins/bilibili)([maotoumao/MusicFreePlugins](https://github.com/maotoumao/MusicFreePlugins)):
+
+- B站接口用法:关键词搜索、`playurl?fnval=16` 解析 DASH 音频流、音质档位选择(低/标准/高)、`buvid3/buvid4` cookie 获取与风控处理(412 重试)、`wbi` 签名
+- 本项目在其思路基础上做了安卓原生适配:接口层移植为 Kotlin([bili/BiliApi.kt](app/src/main/java/com/shiyin/player/bili/BiliApi.kt)),音频播放由网页端的 HTML5 Audio 改为 Media3 `ResolvingDataSource` 占位 URI + 打开时解析直链 + CDN `Referer` 附带
+
+在此向 MusicFree 及其插件作者致谢。
+
 ## 限制
 
 - 仅支持公开内容;部分版权/付费内容可能解析失败
