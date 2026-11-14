@@ -200,7 +200,7 @@ private fun GlassBottomBar(
     val s = AppStore.settings.value
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
-    // 设备不支持 RenderEffect 模糊(Android 11 以下)时,玻璃面退化为纯半透明,
+    // 设备不支持 RenderEffect 实时模糊(Android 11 以下)时,玻璃面退化为纯半透明,
     // 此时自动提高不透明度,保证面板后透出的列表文字不干扰视觉
     val effAlpha = if (Build.VERSION.SDK_INT >= 31) glassAlpha else maxOf(glassAlpha, 0.78f)
     val scope = rememberCoroutineScope()

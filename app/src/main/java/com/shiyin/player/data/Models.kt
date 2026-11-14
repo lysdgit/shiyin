@@ -53,7 +53,7 @@ data class Settings(
     var quality: String = "high", // low / standard / high
     var speed: Float = 1f,
     var theme: String = "dark", // dark / light
-    var glassAlpha: Float = 0.5f,   // 玻璃面不透明度(0.5 = 很透,1.0 = 实色;用户实测 0.5 最佳)
+    var glassAlpha: Float = 0.65f,  // 玻璃面不透明度(默认 0.65;设置页可调 0~100)
     var glassBlur: Float = 0f,      // 模糊半径(dp;用户实测 0 最舒服)
     var damp: Float = 0.75f,        // 滑块动画过冲(1.0 = 无过冲,越小越弹)
     var stiff: Float = 200f,        // 滑块动画速度(越大越快)
