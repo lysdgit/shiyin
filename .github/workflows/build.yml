@@ -88,9 +88,7 @@ jobs:
           tag_name: v${{ steps.ver.outputs.ver }}
           name: 拾音 v${{ steps.ver.outputs.ver }}
           files: app/build/outputs/apk/release/Shiyin-v${{ steps.ver.outputs.ver }}.apk
-          body: |
-            应用版本 ${{ steps.ver.outputs.ver }}(构建 #${{ github.run_number }})
-            下载 **Shiyin-v${{ steps.ver.outputs.ver }}.apk** 直接安装即可(此文件不是压缩包)
+          body_path: RELEASE_NOTES.md
 
       - name: 版本号递增并提交回仓库(供下次构建使用)
         if: success()

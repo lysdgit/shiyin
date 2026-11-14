@@ -200,6 +200,9 @@ private fun GlassBottomBar(
     val s = AppStore.settings.value
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
+    // 设备不支持 RenderEffect 模糊(Android 11 以下)时,玻璃面退化为纯半透明,
+    // 此时自动提高不透明度,保证面板后透出的列表文字不干扰视觉
+    val effAlpha = if (Build.VERSION.SDK_INT >= 31) glassAlpha else maxOf(glassAlpha, 0.78f)
     val scope = rememberCoroutineScope()
     val pillAnim = remember { Animatable(currentTab.toFloat()) } // 初始即对齐当前 tab
     val recoil = remember { Animatable(0f) }
@@ -273,8 +276,8 @@ private fun GlassBottomBar(
                     },
                     // 不透明度可在设置页调,越低玻璃感越强,越高文字越清晰
                     onDrawSurface = {
-                        if (dark) drawRect(Color(0xFF181818).copy(alpha = glassAlpha))
-                        else drawRect(Color(0xFFFBFBFB).copy(alpha = glassAlpha))
+                        if (dark) drawRect(Color(0xFF181818).copy(alpha = effAlpha))
+                        else drawRect(Color(0xFFFBFBFB).copy(alpha = effAlpha))
                     },
                 )
                 .padding(horizontal = 6.dp, vertical = 6.dp),

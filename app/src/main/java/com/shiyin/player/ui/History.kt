@@ -149,7 +149,7 @@ fun HistoryTab() {
             LazyColumn(
                 Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    bottom = 24.dp,
+                    bottom = BottomBarMetrics.clearHeight.value + 8.dp,
                 ),
             ) {
                 itemsIndexed(entries.asReversed()) { idx, e ->

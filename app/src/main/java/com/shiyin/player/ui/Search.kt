@@ -299,7 +299,7 @@ fun SearchPage(nav: NavHostController) {
             SearchState.type == "video" -> {
                 LazyColumn(
                     Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 24.dp),
+                    contentPadding = PaddingValues(bottom = BottomBarMetrics.clearHeight.value + 12.dp),
                 ) {
                     itemsIndexed(SearchState.videos) { _, t ->
                         val q = AppStore.queue.value
@@ -335,7 +335,7 @@ fun SearchPage(nav: NavHostController) {
             else -> {
                 LazyColumn(
                     Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 24.dp),
+                    contentPadding = PaddingValues(bottom = BottomBarMetrics.clearHeight.value + 12.dp),
                 ) {
                     itemsIndexed(SearchState.users) { _, u ->
                         Row(
