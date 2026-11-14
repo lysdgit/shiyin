@@ -210,6 +210,7 @@ fun FullPlayer(nav: NavHostController) {
             Box(
                 Modifier
                     .fillMaxWidth(0.82f)
+                    .aspectRatio(1f)
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .pointerInput(coverViewer) {
