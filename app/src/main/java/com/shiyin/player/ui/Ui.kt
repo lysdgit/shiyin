@@ -93,6 +93,15 @@ fun ShiyinApp() {
         val route = backStack?.destination?.route ?: "main"
         var currentTab by rememberSaveable { mutableIntStateOf(0) }
 
+        // 状态栏图标深浅跟随应用主题(切主题即时生效)
+        LaunchedEffect(dark) {
+            (LocalContext.current as? android.app.Activity)?.enableEdgeToEdge(
+                statusBarStyle = if (dark) SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                                 else SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+                navigationBarStyle = if (dark) SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                                 else SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+            )
+        }
         Box(
             Modifier
                 .fillMaxSize()
