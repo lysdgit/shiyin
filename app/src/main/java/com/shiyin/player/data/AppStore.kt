@@ -15,7 +15,7 @@ import java.io.File
  * 状态用 Compose mutableStateOf 承载,UI 直接读取即可响应更新。
  */
 object AppStore {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var queueFile: File
     private lateinit var galbumsFile: File

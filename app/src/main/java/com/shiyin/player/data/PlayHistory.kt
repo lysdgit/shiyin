@@ -39,7 +39,7 @@ data class HistoryEntry(
  * 只存在手机本地,不上传。
  */
 object PlayHistory {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var file: File
 
