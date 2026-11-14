@@ -65,6 +65,8 @@ jobs:
             EL=$(grep -E "^e: " build.log | head -20 | awk '{printf "%s%%0A", $0}')
             if [ -n "$EL" ]; then DIAG=$EL; else DIAG=$(awk '/What went wrong/{f=1} f{printf "%s%%0A", $0}' build.log | head -c 3800); fi
             echo "::error::构建失败:$DIAG"
+            WSEG=$(awk '/What went wrong/{f=1} f{printf "%s%%0A", $0}' build.log | head -c 3000)
+            if [ -n "$WSEG" ]; then echo "::error::错误段:$WSEG"; fi
           fi
 
       - name: 上传 APK(压缩包形式)
