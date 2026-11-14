@@ -2,7 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, fix-ci ]
   workflow_dispatch:
 
 permissions:
@@ -82,7 +82,9 @@ jobs:
           retention-days: 30
 
       # 发布到 Releases:直接下载裸 APK,不用解压、不用登录
+      # 仅 master/main 正式发布;fix-ci 分支只出测试包(Artifact),不发 Release、不耗版本号
       - name: 发布 APK 到 Releases
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.ver }}
@@ -91,7 +93,7 @@ jobs:
           body_path: RELEASE_NOTES.md
 
       - name: 版本号递增并提交回仓库(供下次构建使用)
-        if: success()
+        if: success() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
         run: |
           NEW=$(awk -F. '{printf "%d.%d", $1, $2+1}' VERSION)
           echo "$NEW" > VERSION
