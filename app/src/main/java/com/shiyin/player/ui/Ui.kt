@@ -98,7 +98,7 @@ fun ShiyinApp() {
         val route = backStack?.destination?.route ?: "main"
         var currentTab by rememberSaveable { mutableIntStateOf(0) }
         val dark = isDarkTheme()
-        val activity = LocalContext.current as? android.app.Activity
+        val activity = LocalContext.current as? androidx.activity.ComponentActivity
 
         // 状态栏/导航栏图标深浅跟随应用主题(切主题即时生效)
         LaunchedEffect(dark) {
