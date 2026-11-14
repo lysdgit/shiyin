@@ -2,6 +2,7 @@
 
 package com.shiyin.player.ui
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
@@ -37,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -46,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -92,6 +95,7 @@ fun ShiyinApp() {
         val backStack by nav.currentBackStackEntryAsState()
         val route = backStack?.destination?.route ?: "main"
         var currentTab by rememberSaveable { mutableIntStateOf(0) }
+        val dark = isDarkTheme()
 
         // 状态栏图标深浅跟随应用主题(切主题即时生效)
         LaunchedEffect(dark) {
