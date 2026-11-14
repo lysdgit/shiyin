@@ -65,7 +65,7 @@ fun SettingsTab() {
                 modifier = Modifier.weight(1f),
             )
             Text(
-                "拾音 v1.9",
+                "拾音 v2.0",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

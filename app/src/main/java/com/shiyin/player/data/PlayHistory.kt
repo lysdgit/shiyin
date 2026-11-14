@@ -11,12 +11,17 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-/** 一条听歌记录:歌名 + 播放时间 + 播放地点(省/市,来自 IP 归属地)。不存视频 ID 与封面,单条约 180 字节 */
+/** 一条听歌记录:歌名 + 播放时间 + 播放地点(省/市,来自 IP 归属地)+ 视频标识(一键重播用) */
 @Serializable
 data class HistoryEntry(
     val playedAt: Long, // 播放开始时间戳(毫秒)
     val title: String,
     val author: String = "",
+    val bvid: String? = null,
+    val aid: Long? = null,
+    val p: Int = 1,
+    val cid: Long? = null,
+    val cover: String? = null,
     val province: String? = null,
     val city: String? = null,
     val district: String? = null,

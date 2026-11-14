@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.shiyin.player.R
 import com.shiyin.player.data.HistoryEntry
 import com.shiyin.player.data.PlayHistory
+import com.shiyin.player.player.PlayerBus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
@@ -177,12 +178,16 @@ fun HistoryTab() {
 
 @Composable
 private fun HistoryRow(e: HistoryEntry) {
+    val canReplay = e.bvid != null || e.aid != null
+
     Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Cover(e.cover, 44.dp)
+        Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 e.title,
@@ -208,6 +213,27 @@ private fun HistoryRow(e: HistoryEntry) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+        if (canReplay) {
+            IconButton(onClick = {
+                PlayerBus.playTrack(
+                    com.shiyin.player.data.Track(
+                        bvid = e.bvid,
+                        aid = e.aid,
+                        p = e.p,
+                        title = e.title,
+                        author = e.author,
+                        cover = e.cover,
+                        cid = e.cid,
+                    )
+                )
+            }) {
+                Icon(
+                    painterResource(R.drawable.ic_play),
+                    contentDescription = "重播",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
