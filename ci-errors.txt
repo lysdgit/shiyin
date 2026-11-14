@@ -1,17 +1,18 @@
+> Task :app:generateReleaseBuildConfig
+> Task :app:generateReleaseResources
 
 > Task :app:stripReleaseDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
 
-> Task :app:generateReleaseResources
-> Task :app:extractReleaseNativeSymbolTables
 > Task :app:packageReleaseResources
-> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:extractReleaseNativeSymbolTables
 > Task :app:processReleaseNavigationResources
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:javaPreCompileRelease
 > Task :app:mergeReleaseArtProfile
 > Task :app:parseReleaseLocalResources
-> Task :app:mapReleaseSourceSetPaths
 > Task :app:checkReleaseAarMetadata
+> Task :app:mapReleaseSourceSetPaths
 > Task :app:compileReleaseNavigationResources
 > Task :app:generateReleaseRFile
 > Task :app:mergeReleaseResources
@@ -24,8 +25,8 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
-> Task :app:processReleaseManifestForPackage
 > Task :app:extractReleaseVersionControlInfo
+> Task :app:processReleaseManifestForPackage
 > Task :app:collectReleaseDependencies
 > Task :app:processReleaseResources
 > Task :app:sdkReleaseDependencyData
@@ -33,13 +34,12 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:writeReleaseAppMetadata
 > Task :app:writeReleaseSigningConfigVersions
 
+> Task :app:compileReleaseKotlin
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:105:23 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun ComponentActivity.enableEdgeToEdge(statusBarStyle: SystemBarStyle = ..., navigationBarStyle: SystemBarStyle = ...): Unit
+
 > Task :app:compileReleaseKotlin FAILED
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:103:23 Unresolved reference 'enableEdgeToEdge'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:104:44 Unresolved reference 'SystemBarStyle'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:105:39 Unresolved reference 'SystemBarStyle'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:106:48 Unresolved reference 'SystemBarStyle'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:107:39 Unresolved reference 'SystemBarStyle'.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1794667917600.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1794668020495.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/shiyin/shiyin/build/reports/problems/problems-report.html
 
@@ -56,5 +56,5 @@ Execution failed for task ':app:compileReleaseKotlin' (registered by plugin 'com
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 24s
+BUILD FAILED in 36s
 35 actionable tasks: 34 executed, 1 up-to-date
