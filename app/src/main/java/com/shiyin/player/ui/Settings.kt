@@ -43,7 +43,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.R
 import com.shiyin.player.data.AppStore
-import kotlinx.serialization.json.Json
 import com.shiyin.player.util.CrashLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -86,7 +85,7 @@ fun SettingsTab() {
                         when {
                             r == null -> "文件格式无法识别"
                             r.first + r.second == 0 -> "文件里没有歌单"
-                            else -> "导入 " + r.first + " 个歌单,覆盖 " + r.second + " 个"
+                            else -> "导入 ${r.first} 个歌单,覆盖 ${r.second} 个"
                         },
                         android.widget.Toast.LENGTH_SHORT,
                     ).show()
