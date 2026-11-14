@@ -67,23 +67,6 @@ jobs:
             if [ -z "$DIAG" ]; then DIAG=$(tail -n 25 build.log | awk '{printf "%s%%0A", $0}'); fi
             echo "::error::构建失败:$DIAG"
           fi
-        if: failure()
-        run: |
-          if [ -f build.log ]; then
-            echo "### 构建日志尾部 45 行" >> $GITHUB_STEP_SUMMARY
-            tail -n 45 build.log >> $GITHUB_STEP_SUMMARY
-            TAIL=$(tail -n 45 build.log)
-            TESC=$(tail -n 45 build.log | awk '{printf "%s%%0A", $0}')
-            echo "::error::构建失败,日志尾部(45 行):$TESC"
-            grep -E "^e: |error: " build.log | head -40 > ci-errors.txt || true
-            if [ -s ci-errors.txt ]; then
-              git config user.name "github-actions[bot]"
-              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-              git add ci-errors.txt
-              git commit -m "ci: 自动记录编译错误(供开发排查)"
-              git push || true
-            fi
-          fi
 
       - name: 上传 APK(压缩包形式)
         uses: actions/upload-artifact@v7
