@@ -1,11 +1,1 @@
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:271:41 Unresolved reference 'Arrangement'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:272:17 Unresolved reference 'Button'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:283:21 Unresolved reference 'Icon'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:284:25 Unresolved reference 'painterResource'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:288:21 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:289:21 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:291:17 Unresolved reference 'OutlinedButton'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:295:21 Unresolved reference 'Icon'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:296:25 Unresolved reference 'painterResource'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:300:21 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:301:21 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Settings.kt:276:41 Unresolved reference 'Arrangement'.
