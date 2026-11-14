@@ -5,6 +5,7 @@ package com.shiyin.player.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -209,9 +210,25 @@ fun FullPlayer(nav: NavHostController) {
             Box(
                 Modifier
                     .fillMaxWidth(0.82f)
-                    .aspectRatio(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .pointerInput(coverViewer) {
+                        detectTapGestures(
+                            onTap = { coverViewer = true },
+                            onLongPress = {
+                                track?.cover?.let { c ->
+                                    val url = originalImageUrl(c)
+                                    scope.launch(Dispatchers.IO) {
+                                        val msg = runCatching { CoverSaver.save(ctx, url) }
+                                            .fold({ it }, { err -> "保存失败:" + err.message })
+                                        launch(Dispatchers.Main) {
+                                            android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            },
+                        )
+                    },
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
