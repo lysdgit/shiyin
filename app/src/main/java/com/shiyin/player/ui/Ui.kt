@@ -131,19 +131,24 @@ fun ShiyinApp() {
             }
 
             if (route != "player") {
+                // 点 tab:切换内容页,并把二级页(歌单详情/UP主详情)弹回主界面
+                val selectTab: (Int) -> Unit = { target ->
+                    currentTab = target
+                    nav.popBackStack("main", inclusive = false)
+                }
                 if (Build.VERSION.SDK_INT >= 31) {
                     GlassBottomBar(
                         modifier = Modifier.align(Alignment.BottomCenter),
                         backdrop = backdrop,
                         currentTab = currentTab,
-                        onTab = { currentTab = it },
+                        onTab = selectTab,
                         onOpenPlayer = { nav.navigate("player") },
                     )
                 } else {
                     SolidBottomBar(
                         modifier = Modifier.align(Alignment.BottomCenter),
                         currentTab = currentTab,
-                        onTab = { currentTab = it },
+                        onTab = selectTab,
                         onOpenPlayer = { nav.navigate("player") },
                     )
                 }
