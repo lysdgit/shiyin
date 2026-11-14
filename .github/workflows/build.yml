@@ -52,6 +52,9 @@ jobs:
       - name: 构建 Release APK
         run: gradle assembleRelease --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
+      - name: 重命名 APK(带版本号)
+        run: mv app/build/outputs/apk/release/*.apk "app/build/outputs/apk/release/Shiyin-v${{ steps.ver.outputs.ver }}.apk"
+
       # 构建失败时把 Kotlin 编译错误提取到运行页顶部 Summary,免翻日志
       - name: 失败时输出诊断信息
         if: failure()
@@ -76,7 +79,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Shiyin-APK
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/Shiyin-v${{ steps.ver.outputs.ver }}.apk
           retention-days: 30
 
       # 发布到 Releases:直接下载裸 APK,不用解压、不用登录
@@ -85,10 +88,10 @@ jobs:
         with:
           tag_name: v${{ steps.ver.outputs.ver }}
           name: 拾音 v${{ steps.ver.outputs.ver }}
-          files: app/build/outputs/apk/release/*.apk
+          files: app/build/outputs/apk/release/Shiyin-v${{ steps.ver.outputs.ver }}.apk
           body: |
             应用版本 ${{ steps.ver.outputs.ver }}(构建 #${{ github.run_number }})
-            下载 **Shiyin-release.apk** 直接安装即可(此文件不是压缩包)
+            下载 **Shiyin-v${{ steps.ver.outputs.ver }}.apk** 直接安装即可(此文件不是压缩包)
 
       - name: 版本号递增并提交回仓库(供下次构建使用)
         if: success()
