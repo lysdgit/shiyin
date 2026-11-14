@@ -60,10 +60,10 @@ object PlayHistory {
     }
 
     /** 异步定位完成后,按时间戳回填某条记录的地点(不影响其他条目) */
-    fun updateLocation(playedAt: Long, province: String?, city: String?, district: String?) {
+    fun updateLocation(playedAt: Long, province: String?, city: String?) {
         entries.value = entries.value.map {
             if (it.playedAt == playedAt) {
-                it.copy(province = province, city = city, district = district)
+                it.copy(province = province, city = city)
             } else it
         }
         save()

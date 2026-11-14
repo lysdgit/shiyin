@@ -124,7 +124,6 @@ object PlayerBus {
                     ts,
                     loc.province,
                     loc.city,
-                    loc.district,
                 )
             }
         }

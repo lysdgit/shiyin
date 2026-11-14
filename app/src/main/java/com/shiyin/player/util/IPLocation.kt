@@ -75,7 +75,7 @@ object IPLocation {
     private fun fetchIipNet(): LocInfo? {
         val text = getText("https://myip.ipip.net") ?: return null
         val m = Regex("来自于:\\s*\\S+\\s+(\\S+)\\s+(\\S+)").find(text) ?: return null
-        return LocInfo(province = m.groupValues[1], city = m.groupValues[2], district = null)
+        return LocInfo(province = m.groupValues[1], city = m.groupValues[2])
     }
 
     private fun str(obj: JsonObject, key: String): String? =
