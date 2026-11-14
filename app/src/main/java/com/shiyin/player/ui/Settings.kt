@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.data.AppStore
 import kotlinx.serialization.json.Json
@@ -322,6 +323,14 @@ fun SettingsTab() {
                 "仅供个人学习使用",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(8.dp))
+            val uriHandler = LocalUriHandler.current
+            Text(
+                "GitHub:github.com/lysdgit/shiyin",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { uriHandler.openUri("https://github.com/lysdgit/shiyin") },
             )
             // 有闪退记录时提供导出(给开发者排查)
             val ctx = LocalContext.current
