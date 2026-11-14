@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit
 data class LocInfo(val province: String?, val city: String?, val district: String?)
 
 /**
- * IP 归属地查询(免权限、免 GPS):优先百度千帆接口(省/市/区县),
- * 失败退备用接口(省/市/区)。结果缓存 10 分钟,移动切网后自动刷新。
+ * IP 归属地查询(免权限、免 GPS):
+ * 1. 首选 B站 zone 接口(HTTPS 国内直连最稳,省/市,格式与历史记录一致)
+ * 2. 次选 myip.ipip.net(HTTPS,中文文本解析 省/市)
+ * 结果缓存 10 分钟,移动切网后自动刷新。
  */
 object IPLocation {
 
@@ -35,8 +37,7 @@ object IPLocation {
         if (hit != null && System.currentTimeMillis() < hit.first) {
             return@withContext hit.second
         }
-        // 顺序:中文省市优先(ip-api 主 → ipip.net → 百度千帆 → useragentinfo)
-        val loc = fetchIpApi() ?: fetchIipNet() ?: fetchBaiduQifu() ?: fetchUserAgentInfo()
+        val loc = fetchBiliZone() ?: fetchIipNet()
         cache = Pair(System.currentTimeMillis() + CACHE_MS, loc)
         loc
     }
@@ -57,48 +58,24 @@ object IPLocation {
         }
     }.getOrNull()
 
-    /** ip-api.com(中文,免费版仅 HTTP,manifest 已对该域名放行明文):{"status":"success","regionName":"广东","city":"深圳"} */
-    private fun fetchIpApi(): LocInfo? {
-        val el = get("http://ip-api.com/json/?lang=zh-CN") ?: return null
+    /** B站 zone(首选):{"code":0,"data":{"province":"广东","city":"东莞",...}} */
+    private fun fetchBiliZone(): LocInfo? {
+        val el = get("https://api.bilibili.com/x/web-interface/zone") ?: return null
         val d = el as? JsonObject ?: return null
-        if (str(d, "status") != "success") return null
+        if (str(d, "code") != "0") return null
+        val data = d.get("data") as? JsonObject ?: return null
         return LocInfo(
-            province = str(d, "regionName"),
-            city = str(d, "city"),
+            province = str(data, "province"),
+            city = str(data, "city"),
             district = null,
         )
     }
 
-    /** myip.ipip.net(中文文本):"当前 IP:x.x.x.x 来自于:中国 广东 深圳 电信" */
+    /** myip.ipip.net(次选,中文文本):"当前 IP:x.x.x.x 来自于:中国 广东 深圳 电信" */
     private fun fetchIipNet(): LocInfo? {
         val text = getText("https://myip.ipip.net") ?: return null
         val m = Regex("来自于:\\s*\\S+\\s+(\\S+)\\s+(\\S+)").find(text) ?: return null
         return LocInfo(province = m.groupValues[1], city = m.groupValues[2], district = null)
-    }
-
-    /** 百度千帆: {"code":0,"data":{"prov":..,"city":..,"district":..}} */
-    private fun fetchBaiduQifu(): LocInfo? {
-        val el = get("https://qifu-api.baidubce.com/ip/local/geo/v1/district") ?: return null
-        val d = el as? JsonObject ?: return null
-        val code = (d.get("code") as? JsonPrimitive)?.content ?: return null
-        if (code != "0") return null
-        val data = d.get("data") as? JsonObject ?: return null
-        return LocInfo(
-            province = str(data, "prov"),
-            city = str(data, "city"),
-            district = str(data, "district"),
-        )
-    }
-
-    /** 备用: {"province":..,"city":..,"area":..} */
-    private fun fetchUserAgentInfo(): LocInfo? {
-        val el = get("https://ip.useragentinfo.com/json") ?: return null
-        val d = el as? JsonObject ?: return null
-        return LocInfo(
-            province = str(d, "province"),
-            city = str(d, "city"),
-            district = str(d, "area"),
-        )
     }
 
     private fun str(obj: JsonObject, key: String): String? =
