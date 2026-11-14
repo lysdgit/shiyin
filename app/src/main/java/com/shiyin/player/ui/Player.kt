@@ -346,7 +346,7 @@ fun FullPlayer(nav: NavHostController) {
                         )
                     }
                     TextButton(onClick = { PlayerBus.showQueue.value = true }) {
-                        Text("队列", color = MaterialTheme.colorScheme.onSurface)
+                        Text("列表", color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }

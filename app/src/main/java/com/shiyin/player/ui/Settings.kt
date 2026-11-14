@@ -51,6 +51,7 @@ fun SettingsTab() {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
+            .padding(bottom = BottomBarMetrics.clearHeight.value + 16.dp)
     ) {
         Row(
             Modifier
@@ -65,7 +66,7 @@ fun SettingsTab() {
                 modifier = Modifier.weight(1f),
             )
             Text(
-                "拾音 v2.0.2",
+                "拾音 v2.0.3",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
