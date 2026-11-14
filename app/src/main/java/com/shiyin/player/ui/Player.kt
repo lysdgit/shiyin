@@ -134,6 +134,7 @@ fun FullPlayer(nav: NavHostController) {
     var dragPos by remember { mutableFloatStateOf(0f) }
     var dragAccum by remember { mutableFloatStateOf(0f) }
     var dialog by remember { mutableStateOf<String?>(null) }
+    var coverViewer by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -351,6 +352,13 @@ fun FullPlayer(nav: NavHostController) {
                 }
             }
         }
+    }
+
+    if (coverViewer && track?.cover != null) {
+        CoverViewerOverlay(
+            url = originalImageUrl(track.cover),
+            onDismiss = { coverViewer = false },
+        )
     }
 
     when (dialog) {
