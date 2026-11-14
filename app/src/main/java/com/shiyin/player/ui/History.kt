@@ -2,8 +2,8 @@
 
 package com.shiyin.player.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,19 +28,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.R
 import com.shiyin.player.data.HistoryEntry
 import com.shiyin.player.data.PlayHistory
-import com.shiyin.player.data.Track
-import com.shiyin.player.player.PlayerBus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+private val TIME_FMT_CSV = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
 private fun formatTime(ms: Long): String = try {
     Instant.ofEpochMilli(ms).atZone(ZoneId.systemDefault()).format(TIME_FMT)
@@ -49,11 +51,55 @@ private fun formatTime(ms: Long): String = try {
     ""
 }
 
-/** 听歌记录 Tab:歌名 + 播放时间 + 播放地点(省市区),可重播、可清空 */
+private fun formatTimeCsv(ms: Long): String = try {
+    Instant.ofEpochMilli(ms).atZone(ZoneId.systemDefault()).format(TIME_FMT_CSV)
+} catch (_: Exception) {
+    ""
+}
+
+/** CSV 字段转义:含逗号/引号/换行时加引号包裹,内部引号翻倍 */
+private fun csvEscape(v: String): String =
+    if (v.contains(',') || v.contains('"') || v.contains('\n'))
+        "\"" + v.replace("\"", "\"\"") + "\""
+    else v
+
+/** 听歌记录 Tab:歌名 + 播放时间 + 播放地点(省市区),支持导出 CSV、清空 */
 @Composable
 fun HistoryTab() {
     val entries = PlayHistory.entries.value
     var clearing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+
+    // 导出 CSV(UTF-8 BOM,Excel 直接打开不乱码)
+    val exportCsv = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) {
+            scope.launch(Dispatchers.IO) {
+                runCatching {
+                    ctx.contentResolver.openOutputStream(uri)?.use { os ->
+                        os.write(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())) // UTF-8 BOM
+                        os.write("播放时间,歌曲名称,UP主,省,市,区县\n".toByteArray(Charsets.UTF_8))
+                        PlayHistory.entries.value.forEach { e ->
+                            val line = listOf(
+                                formatTimeCsv(e.playedAt),
+                                csvEscape(e.title),
+                                csvEscape(e.author),
+                                csvEscape(e.province ?: ""),
+                                csvEscape(e.city ?: ""),
+                                csvEscape(e.district ?: ""),
+                            ).joinToString(",")
+                            os.write((line + "\n").toByteArray(Charsets.UTF_8))
+                        }
+                    }
+                }
+                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(ctx, "已导出", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     Column(Modifier.fillMaxSize()) {
         Row(
@@ -73,13 +119,30 @@ fun HistoryTab() {
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // 导出 CSV(在删除按钮左侧)
+            IconButton(
+                onClick = {
+                    exportCsv.launch(
+                        "shiyin-history-" +
+                            java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) +
+                            ".csv"
+                    )
+                },
+                enabled = entries.isNotEmpty(),
+            ) {
+                Icon(painterResource(R.drawable.ic_download), contentDescription = "导出播放记录", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             IconButton(onClick = { clearing = true }, enabled = entries.isNotEmpty()) {
                 Icon(painterResource(R.drawable.ic_trash), contentDescription = "清空记录", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (entries.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("还没有播放记录\n放一首歌试试", color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(
+                    "还没有播放记录\n放一首歌试试",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
             }
         } else {
             LazyColumn(
@@ -96,7 +159,7 @@ fun HistoryTab() {
     }
 
     if (clearing) {
-        AlertDialog(
+        androidx.compose.material3.AlertDialog(
             onDismissRequest = { clearing = false },
             title = { Text("清空记录") },
             text = { Text("确定清空全部 ${entries.size} 条听歌记录吗?(不影响歌单)") },
@@ -113,30 +176,12 @@ fun HistoryTab() {
 
 @Composable
 private fun HistoryRow(e: HistoryEntry) {
-    val canReplay = e.bvid != null || e.aid != null
-
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .clickable(enabled = canReplay) {
-                PlayerBus.playTrack(
-                    Track(
-                        bvid = e.bvid,
-                        aid = e.aid,
-                        p = e.p,
-                        title = e.title,
-                        author = e.author,
-                        cover = e.cover,
-                        cid = e.cid,
-                    )
-                )
-            }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Cover(e.cover, 44.dp)
-        Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 e.title,
@@ -145,7 +190,6 @@ private fun HistoryRow(e: HistoryEntry) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.padding(top = 1.dp))
             Text(
                 buildString {
                     if (e.author.isNotBlank()) append("${e.author} · ")
@@ -163,23 +207,6 @@ private fun HistoryRow(e: HistoryEntry) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-        }
-        if (canReplay) {
-            IconButton(onClick = {
-                PlayerBus.playTrack(
-                    Track(
-                        bvid = e.bvid,
-                        aid = e.aid,
-                        p = e.p,
-                        title = e.title,
-                        author = e.author,
-                        cover = e.cover,
-                        cid = e.cid,
-                    )
-                )
-            }) {
-                Icon(painterResource(R.drawable.ic_play), contentDescription = "重播")
-            }
         }
     }
 }

@@ -11,17 +11,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-/** 一条听歌记录:歌名 + 播放时间 + 播放地点(省/市/区县,来自 IP 归属地) */
+/** 一条听歌记录:歌名 + 播放时间 + 播放地点(省/市,来自 IP 归属地)。不存视频 ID 与封面,单条约 180 字节 */
 @Serializable
 data class HistoryEntry(
     val playedAt: Long, // 播放开始时间戳(毫秒)
     val title: String,
     val author: String = "",
-    val bvid: String? = null,
-    val aid: Long? = null,
-    val p: Int = 1,
-    val cid: Long? = null,
-    val cover: String? = null,
     val province: String? = null,
     val city: String? = null,
     val district: String? = null,
@@ -36,14 +31,13 @@ data class HistoryEntry(
 }
 
 /**
- * 听歌记录存储,按时间正序追加,上限 5000 条(超出裁掉最旧)。
+ * 听歌记录存储,按时间正序追加,无上限、不自动删除(用户要求永久保留)。
  * 只存在手机本地,不上传。
  */
 object PlayHistory {
     private val json = Json { ignoreUnknownKeys = true }
     private val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var file: File
-    private const val MAX = 5000
 
     val entries = mutableStateOf<List<HistoryEntry>>(emptyList())
 
@@ -58,9 +52,6 @@ object PlayHistory {
 
     fun log(entry: HistoryEntry) {
         entries.value = entries.value + entry
-        if (entries.value.size > MAX) {
-            entries.value = entries.value.takeLast(MAX)
-        }
         save()
     }
 
