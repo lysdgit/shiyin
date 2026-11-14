@@ -200,9 +200,9 @@ private fun GlassBottomBar(
     val s = AppStore.settings.value
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
-    // 设备不支持 RenderEffect 实时模糊(Android 11 以下)时,玻璃面退化为纯半透明,
-    // 此时自动提高不透明度,保证面板后透出的列表文字不干扰视觉
-    val effAlpha = if (Build.VERSION.SDK_INT >= 31) glassAlpha else maxOf(glassAlpha, 0.78f)
+    // 模糊不足以糊住穿透文字(≤2dp,含 0)时,自动提高色罩不透明度保证可读;
+    // 本函数只在 Android 12+(API 31+)被调用,无需按 SDK 分支
+    val effAlpha = if (glassBlur <= 2f) maxOf(glassAlpha, 0.85f) else glassAlpha
     val scope = rememberCoroutineScope()
     val pillAnim = remember { Animatable(currentTab.toFloat()) } // 初始即对齐当前 tab
     val recoil = remember { Animatable(0f) }
@@ -224,11 +224,12 @@ private fun GlassBottomBar(
     Column(
         modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
             .onGloballyPositioned { coords ->
+                // 量在 windowInsetsPadding 之前:包含手势条区域,列表避让才是完整高度
                 BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
-            },
+            }
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
     ) {
         Column(
             Modifier
@@ -325,11 +326,12 @@ private fun SolidBottomBar(
     Column(
         modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
             .onGloballyPositioned { coords ->
+                // 量在 windowInsetsPadding 之前:包含手势条区域,列表避让才是完整高度
                 BottomBarMetrics.clearHeight.value = with(density) { coords.size.height.toDp() }
-            },
+            }
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
     ) {
         Column(
             Modifier
