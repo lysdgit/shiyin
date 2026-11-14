@@ -53,7 +53,17 @@ jobs:
         run: gradle assembleRelease --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
       # 构建失败时把 Kotlin 编译错误提取到运行页顶部 Summary,免翻日志
-      - name: 失败时提取编译错误
+      - name: 失败时输出诊断信息
+        if: failure()
+        run: |
+          if [ -f build.log ]; then
+            echo "### 构建日志尾部 45 行" >> $GITHUB_STEP_SUMMARY
+            tail -n 45 build.log >> $GITHUB_STEP_SUMMARY
+            TAIL=$(tail -n 45 build.log)
+            TESC=$(echo "$TAIL" | sed ':a;N;$!ba;s/
+/%0A/g')
+            echo "::error::构建失败,日志尾部:$TESC"
+          fi
         if: failure()
         run: |
           if [ -f build.log ]; then
