@@ -1,0 +1,3 @@
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/data/PlayHistory.kt:66:59 No parameter with name 'district' found.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/player/PlayerBus.kt:127:25 Unresolved reference 'district'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/util/IPLocation.kt:78:78 No parameter with name 'district' found.
