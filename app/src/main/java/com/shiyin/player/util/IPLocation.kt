@@ -43,7 +43,7 @@ object IPLocation {
 
     private fun get(url: String): JsonElement? = runCatching {
         val req = Request.Builder().url(url).header("User-Agent", BiliApi.UA).build()
-        http.newCall(req).execute().use { resp ->
+        client.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) return@runCatching null
             resp.body?.string()?.let { json.parseToJsonElement(it) }
         }
@@ -51,7 +51,7 @@ object IPLocation {
 
     private fun getText(url: String): String? = runCatching {
         val req = Request.Builder().url(url).header("User-Agent", BiliApi.UA).build()
-        http.newCall(req).execute().use { resp ->
+        client.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) return@runCatching null
             resp.body?.string()
         }
@@ -61,7 +61,7 @@ object IPLocation {
     private fun fetchIpApi(): LocInfo? {
         val el = get("http://ip-api.com/json/?lang=zh-CN") ?: return null
         val d = el as? JsonObject ?: return null
-        if (d.s("status") != "success") return null
+        if (str(d, "status") != "success") return null
         return LocInfo(
             province = str(d, "regionName"),
             city = str(d, "city"),
