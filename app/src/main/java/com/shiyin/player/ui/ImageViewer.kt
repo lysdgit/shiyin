@@ -114,7 +114,10 @@ fun CoverViewerOverlay(url: String, onDismiss: () -> Unit) {
                     .background(Color.Black.copy(alpha = 0.55f), CircleShape),
             ) {
                 if (saving) {
-                    CircularProgressIndicator(Color.White, modifier = Modifier.size(18.dp))
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(18.dp),
+                    )
                 } else {
                     Icon(
                         painterResource(R.drawable.ic_download),
