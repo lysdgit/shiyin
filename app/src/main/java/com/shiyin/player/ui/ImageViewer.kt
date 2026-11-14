@@ -83,6 +83,7 @@ fun CoverViewerOverlay(url: String, onDismiss: () -> Unit) {
                     .fillMaxSize()
                     .pointerInput(Unit) {
                         detectTapGestures(
+                            onTap = { onDismiss() },
                             onLongPress = { doSave() },
                         )
                     },
