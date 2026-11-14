@@ -24,11 +24,10 @@ data class HistoryEntry(
     val cover: String? = null,
     val province: String? = null,
     val city: String? = null,
-    val district: String? = null,
 ) {
     /** 地点显示:省·市·区(去重),查不到时"未知地点" */
     val placeText: String
-        get() = listOfNotNull(province, city, district)
+        get() = listOfNotNull(province, city)
             .filter { it.isNotBlank() }
             .distinct()
             .joinToString("·")

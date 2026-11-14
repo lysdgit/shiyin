@@ -82,7 +82,7 @@ fun HistoryTab() {
                 runCatching {
                     ctx.contentResolver.openOutputStream(uri)?.use { os ->
                         os.write(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())) // UTF-8 BOM
-                        os.write("播放时间,歌曲名称,UP主,省,市,区县\n".toByteArray(Charsets.UTF_8))
+                        os.write("播放时间,歌曲名称,UP主,省,市\n".toByteArray(Charsets.UTF_8))
                         PlayHistory.entries.value.forEach { e ->
                             val line = listOf(
                                 formatTimeCsv(e.playedAt),
@@ -90,7 +90,6 @@ fun HistoryTab() {
                                 csvEscape(e.author),
                                 csvEscape(e.province ?: ""),
                                 csvEscape(e.city ?: ""),
-                                csvEscape(e.district ?: ""),
                             ).joinToString(",")
                             os.write((line + "\n").toByteArray(Charsets.UTF_8))
                         }

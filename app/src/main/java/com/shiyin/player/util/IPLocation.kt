@@ -11,7 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
-data class LocInfo(val province: String?, val city: String?, val district: String?)
+data class LocInfo(val province: String?, val city: String?)
 
 /**
  * IP 归属地查询(免权限、免 GPS):
@@ -67,7 +67,7 @@ object IPLocation {
         return LocInfo(
             province = str(data, "province"),
             city = str(data, "city"),
-            district = null,
+
         )
     }
 
