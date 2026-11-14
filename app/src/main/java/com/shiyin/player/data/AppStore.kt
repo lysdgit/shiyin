@@ -116,4 +116,32 @@ object AppStore {
         saveGalbums()
         return true
     }
+
+    /**
+     * 导入歌单 JSON(兼容单个歌单对象与歌单数组两种格式)。
+     * 同 ID 覆盖,否则追加。返回 (新导入数, 覆盖数);解析失败返回 null。
+     */
+    fun importGalbums(text: String): Pair<Int, Int>? {
+        val imported = runCatching {
+            json.decodeFromString<List<Galbum>>(text)
+        }.getOrElse {
+            runCatching { listOf(json.decodeFromString<Galbum>(text)) }.getOrElse { return null }
+        }
+        var added = 0
+        var overwrote = 0
+        val list = galbums.value.toMutableList()
+        for (g in imported) {
+            val idx = list.indexOfFirst { it.id == g.id }
+            if (idx >= 0) {
+                list[idx] = g
+                overwrote++
+            } else {
+                list.add(0, g)
+                added++
+            }
+        }
+        galbums.value = list
+        saveGalbums()
+        return Pair(added, overwrote)
+    }
 }

@@ -48,6 +48,7 @@ data class VideoInfo(
     val duration: Int,
     val cid: Long,
     val pages: List<PageRef>,
+    val pubdate: Long = 0, // 视频发布时间(Unix 秒)
 )
 data class AudioSrc(val url: String, val kind: String, val bandwidth: Long)
 data class UserVideosResult(val items: List<Track>, val count: Int, val isEnd: Boolean)
@@ -348,6 +349,7 @@ object BiliApi {
                 cover = httpsUrl(v.s("pic")),
                 duration = v.dur(),
                 play = v.l("play") ?: 0,
+                pubdate = v.l("pubdate") ?: 0,
             )
         }
         val count = d.o("page")?.i("count") ?: items.size
@@ -436,6 +438,7 @@ object BiliApi {
             duration = d.dur(),
             cid = d.l("cid") ?: pages.firstOrNull()?.cid ?: 0,
             pages = pages,
+            pubdate = d.l("pubdate") ?: 0,
         )
         cacheSet(cacheKey, info, 10 * 60 * 1000)
         return info
@@ -524,6 +527,7 @@ object BiliApi {
                             author = decodeEntities(m.o("upper")?.s("name") ?: ""),
                             cover = httpsUrl(m.s("cover")),
                             duration = m.dur(),
+                            pubdate = m.l("pubtime") ?: 0,
                             pagesCount = 1,
                         )
                     )
@@ -665,6 +669,7 @@ object BiliApi {
                         author = info.author,
                         cover = info.cover,
                         duration = pg.duration,
+                        pubdate = info.pubdate,
                         pagesCount = 1,
                         cid = pg.cid,
                     )
@@ -690,6 +695,7 @@ object BiliApi {
                         author = info.author,
                         cover = info.cover,
                         duration = pg?.duration ?: info.duration,
+                        pubdate = info.pubdate,
                         pagesCount = if (pages.size > 1) pages.size else 1,
                         cid = pg?.cid ?: info.cid,
                         pages = if (pages.size > 1) pages else null,

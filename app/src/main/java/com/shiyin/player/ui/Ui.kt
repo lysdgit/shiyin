@@ -526,6 +526,7 @@ fun TrackRow(
     onPlay: () -> Unit,
     onAddTo: (() -> Unit)? = null,
     onOpen: (() -> Unit)? = null,
+    showPubdate: Boolean = false,
 ) {
     Row(
         Modifier
@@ -551,6 +552,7 @@ fun TrackRow(
             Text(
                 buildString {
                     append(track.author)
+                    if (showPubdate && track.pubdate > 0) append(" · 发布于 " + formatPubdate(track.pubdate))
                     if (track.duration > 0) append(" · ${BiliApi.formatDuration(track.duration)}")
                     if (track.play > 0) append(" · ${BiliApi.formatCount(track.play)}次播放")
                 },
@@ -604,4 +606,12 @@ fun SubTopBar(title: String, onBack: () -> Unit, trailing: @Composable (() -> Un
         )
         if (trailing != null) trailing()
     }
+}
+
+/** Unix 秒 → yyyy-MM-dd(发布时间显示) */
+fun formatPubdate(sec: Long): String = try {
+    java.time.Instant.ofEpochSecond(sec).atZone(java.time.ZoneId.systemDefault())
+        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+} catch (_: Exception) {
+    ""
 }

@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.data.AppStore
+import kotlinx.serialization.json.Json
 import com.shiyin.player.util.CrashLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,6 +46,47 @@ import kotlinx.coroutines.launch
 fun SettingsTab() {
     val s = AppStore.settings.value
     val theme = s.theme
+    val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+    val exportAllGalbums = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            scope.launch(Dispatchers.IO) {
+                runCatching {
+                    ctx.contentResolver.openOutputStream(uri)?.use { os ->
+                        os.write(Json.encodeToString(AppStore.galbums.value).toByteArray(Charsets.UTF_8))
+                    }
+                }
+                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(ctx, "已导出全部歌单", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    val importGalbumsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            scope.launch(Dispatchers.IO) {
+                val text = runCatching {
+                    ctx.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+                }.getOrNull()
+                val r = text?.let { AppStore.importGalbums(it) }
+                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(
+                        ctx,
+                        when {
+                            r == null -> "文件格式无法识别"
+                            r.first + r.second == 0 -> "文件里没有歌单"
+                            else -> "导入 " + r.first + " 个歌单,覆盖 " + r.second + " 个"
+                        },
+                        android.widget.Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+        }
+    }
 
     Column(
         Modifier
@@ -205,6 +247,59 @@ fun SettingsTab() {
                 onValueChangeFinished = { AppStore.saveSettings() },
                 valueRange = 0f..0.3f,
             )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 歌单备份(全部导出 / 导入,JSON)
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp)
+        ) {
+            Text("歌单备份", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "导出全部歌单为 JSON;导入时同 ID 歌单将被覆盖,其余追加",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(
+                    onClick = {
+                        exportAllGalbums.launch(
+                            "shiyin-galbums-" +
+                                java.time.LocalDateTime.now()
+                                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) +
+                                ".json"
+                        )
+                    },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        painterResource(com.shiyin.player.R.drawable.ic_download),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("导出全部")
+                }
+                OutlinedButton(
+                    onClick = { importGalbumsLauncher.launch(arrayOf("application/json")) },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        painterResource(com.shiyin.player.R.drawable.ic_folder),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("导入")
+                }
+            }
         }
 
         Spacer(Modifier.height(16.dp))
