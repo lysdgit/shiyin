@@ -98,7 +98,7 @@ fun PlaylistsTab(nav: NavHostController) {
             columns = GridCells.Adaptive(minSize = 120.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 start = 12.dp, top = 12.dp, end = 12.dp,
-                bottom = BottomBarMetrics.clearHeight.value + 12.dp,
+                bottom = 24.dp,
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -343,7 +343,7 @@ fun GalbumPage(nav: NavHostController, id: String) {
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                bottom = BottomBarMetrics.clearHeight.value,
+                bottom = 24.dp,
             ),
         ) {
             itemsIndexed(g.tracks) { _, t ->
@@ -482,7 +482,7 @@ fun UserPage(nav: NavHostController, mid: Long) {
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                bottom = BottomBarMetrics.clearHeight.value,
+                bottom = 24.dp,
             ),
         ) {
             itemsIndexed(works) { _, t ->

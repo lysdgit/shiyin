@@ -100,7 +100,7 @@ fun SettingsTab() {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
-            .padding(bottom = BottomBarMetrics.clearHeight.value + 16.dp)
+            .padding(bottom = 24.dp)
     ) {
         Row(
             Modifier
