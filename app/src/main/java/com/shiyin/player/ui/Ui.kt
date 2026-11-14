@@ -200,9 +200,6 @@ private fun GlassBottomBar(
     val s = AppStore.settings.value
     val glassAlpha = s.glassAlpha
     val glassBlur = s.glassBlur
-    // 模糊不足以糊住穿透文字(≤2dp,含 0)时,自动提高色罩不透明度保证可读;
-    // 本函数只在 Android 12+(API 31+)被调用,无需按 SDK 分支
-    val effAlpha = if (glassBlur <= 2f) maxOf(glassAlpha, 0.85f) else glassAlpha
     val scope = rememberCoroutineScope()
     val pillAnim = remember { Animatable(currentTab.toFloat()) } // 初始即对齐当前 tab
     val recoil = remember { Animatable(0f) }
@@ -277,8 +274,8 @@ private fun GlassBottomBar(
                     },
                     // 不透明度可在设置页调,越低玻璃感越强,越高文字越清晰
                     onDrawSurface = {
-                        if (dark) drawRect(Color(0xFF181818).copy(alpha = effAlpha))
-                        else drawRect(Color(0xFFFBFBFB).copy(alpha = effAlpha))
+                        if (dark) drawRect(Color(0xFF181818).copy(alpha = glassAlpha))
+                        else drawRect(Color(0xFFFBFBFB).copy(alpha = glassAlpha))
                     },
                 )
                 .padding(horizontal = 6.dp, vertical = 6.dp),
