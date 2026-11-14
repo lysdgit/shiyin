@@ -101,14 +101,14 @@ object PlayerBus {
         })
     }
 
-    /** 写一条听歌记录(歌名 + 播放时间 + IP 归属地点) */
+    /** 写一条听歌记录:先落盘(用户立即可见),IP 归属地异步查询后回填地点 */
     private fun logPlayHistory(item: MediaItem) {
         scope.launch {
             val track = AppStore.queue.value.tracks.firstOrNull { it.key == item.mediaId }
-            val loc = IPLocation.fetch()
+            val ts = System.currentTimeMillis()
             PlayHistory.log(
                 HistoryEntry(
-                    playedAt = System.currentTimeMillis(),
+                    playedAt = ts,
                     title = track?.title ?: item.mediaMetadata.title?.toString() ?: "",
                     author = track?.author ?: item.mediaMetadata.artist?.toString() ?: "",
                     bvid = track?.bvid,
@@ -116,11 +116,17 @@ object PlayerBus {
                     p = track?.p ?: 1,
                     cid = track?.cid,
                     cover = track?.cover,
-                    province = loc?.province,
-                    city = loc?.city,
-                    district = loc?.district,
                 )
             )
+            val loc = IPLocation.fetch()
+            if (loc != null) {
+                PlayHistory.updateLocation(
+                    ts,
+                    loc.province,
+                    loc.city,
+                    loc.district,
+                )
+            }
         }
     }
 

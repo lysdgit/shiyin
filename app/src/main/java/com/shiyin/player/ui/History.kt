@@ -153,8 +153,8 @@ fun HistoryTab() {
                     bottom = BottomBarMetrics.clearHeight.value + 8.dp,
                 ),
             ) {
-                itemsIndexed(entries.asReversed()) { _, e ->
-                    HistoryRow(e)
+                itemsIndexed(entries.asReversed()) { idx, e ->
+                    HistoryRow(e, isLatest = idx == 0)
                 }
             }
         }
@@ -177,7 +177,7 @@ fun HistoryTab() {
 }
 
 @Composable
-private fun HistoryRow(e: HistoryEntry) {
+private fun HistoryRow(e: HistoryEntry, isLatest: Boolean = false) {
     val canReplay = e.bvid != null || e.aid != null
 
     Row(
@@ -206,8 +206,9 @@ private fun HistoryRow(e: HistoryEntry) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            val placeLine = if (isLatest && e.placeText == "未知地点") "定位中…" else e.placeText
             Text(
-                e.placeText,
+                placeLine,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
