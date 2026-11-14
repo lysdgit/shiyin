@@ -235,10 +235,10 @@ fun GalbumPage(nav: NavHostController, id: String) {
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         if (uri == null || g == null) return@rememberLauncherForActivityResult
+        // 导出前自动补齐缺失的发布时间(每首一个 view 请求,并发 3)
+        val need = g.tracks.filter { it.pubdate <= 0L && it.hasRef() }
         scope.launch(Dispatchers.IO) {
             runCatching {
-                // 导出前自动补齐缺失的发布时间(每首一个 view 请求,并发 3)
-                val need = g.tracks.filter { it.pubdate <= 0L && it.hasRef() }
                 if (need.isNotEmpty()) {
                     val sem = Semaphore(3)
                     val updated = coroutineScope {
