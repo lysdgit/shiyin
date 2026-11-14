@@ -60,12 +60,18 @@ jobs:
         if: failure()
         run: |
           if [ -f build.log ]; then
-            echo "### 错误段落" >> $GITHUB_STEP_SUMMARY
+            echo "### 失败详情(What went wrong 之后)" >> $GITHUB_STEP_SUMMARY
             awk '/What went wrong/{f=1} f{print}' build.log >> $GITHUB_STEP_SUMMARY || true
+            tail -n 60 build.log > ci-errors.txt
+            if [ -s ci-errors.txt ]; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add ci-errors.txt
+              git commit -m "ci: 自动记录构建失败日志尾部(ci-errors.txt)"
+              git push || true
+            fi
             EL=$(grep -E "^e: " build.log | head -20 | awk '{printf "%s%%0A", $0}')
-            EL=$(grep -E "^e: " build.log | head -20 | awk '{printf "%s%%0A", $0}')
-            if [ -n "$EL" ]; then DIAG=$EL; else DIAG=$(awk '/What went wrong/{f=1} f{printf "%s%%0A", $0}' build.log | head -c 3800); fi
-            if [ -n "$WSEG" ]; then echo "::error::错误段:$WSEG"; fi
+            if [ -n "$EL" ]; then echo "::error::$EL"; fi
           fi
 
       - name: 上传 APK(压缩包形式)
