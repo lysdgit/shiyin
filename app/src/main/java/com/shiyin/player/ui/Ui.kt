@@ -93,6 +93,12 @@ object BottomBarMetrics {
 @Composable
 fun ShiyinApp() {
     ShiyinTheme {
+        // Surface 携带 onSurface 内容色并向全部子级传播:
+        // 未显式指定颜色的 Icon/Text 自动跟随主题(深色=浅字,浅色=深字)
+        androidx.compose.material3.Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background,
+        ) {
         val nav: NavHostController = rememberNavController()
         val backStack by nav.currentBackStackEntryAsState()
         val route = backStack?.destination?.route ?: "main"
@@ -175,6 +181,7 @@ fun ShiyinApp() {
         if (PlayerBus.showQueue.value) QueueSheet()
         PlayerBus.addToTrack.value?.let { AddToSheet(it) }
         if (PlayerBus.showPaste.value) PasteDialog()
+        }
     }
 }
 
