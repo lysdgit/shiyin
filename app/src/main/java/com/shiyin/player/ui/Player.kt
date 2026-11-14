@@ -213,20 +213,9 @@ fun FullPlayer(nav: NavHostController) {
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .pointerInput(coverViewer) {
+                        // 单击:打开原图查看(保存功能在原图查看界面)
                         detectTapGestures(
                             onTap = { coverViewer = true },
-                            onLongPress = {
-                                track?.cover?.let { c ->
-                                    val url = originalImageUrl(c)
-                                    scope.launch(Dispatchers.IO) {
-                                        val msg = runCatching { CoverSaver.save(ctx, url) }
-                                            .fold({ it }, { err -> "保存失败:" + err.message })
-                                        launch(Dispatchers.Main) {
-                                            android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                                }
-                            },
                         )
                     },
                 contentAlignment = Alignment.Center,
