@@ -66,7 +66,7 @@ fun SettingsTab() {
                 modifier = Modifier.weight(1f),
             )
             Text(
-                "拾音 v2.0.3",
+                "拾音 v" + com.shiyin.player.BuildConfig.VERSION_NAME,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -45,6 +45,10 @@ jobs:
             git push
           fi
 
+      - name: 读取版本号
+        id: ver
+        run: echo "ver=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+
       - name: 构建 Release APK
         run: gradle assembleRelease --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
@@ -76,8 +80,20 @@ jobs:
       - name: 发布 APK 到 Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0-${{ github.run_number }}
-          name: 拾音 v1.0-${{ github.run_number }}
+          tag_name: v${{ steps.ver.outputs.ver }}
+          name: 拾音 v${{ steps.ver.outputs.ver }}
           files: app/build/outputs/apk/release/*.apk
           body: |
+            应用版本 ${{ steps.ver.outputs.ver }}(构建 #${{ github.run_number }})
             下载 **Shiyin-release.apk** 直接安装即可(此文件不是压缩包)
+
+      - name: 版本号递增并提交回仓库(供下次构建使用)
+        if: success()
+        run: |
+          NEW=$(awk -F. '{printf "%d.%d", $1, $2+1}' VERSION)
+          echo "$NEW" > VERSION
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "ci: 版本号递增至 v$NEW"
+          git push

@@ -6,6 +6,10 @@ plugins {
 
 val keystoreFile = rootProject.file("keystore.jks")
 
+// 版本号由仓库根目录的 VERSION 文件统一管理(CI 发布成功后自动 +0.1)
+val appVersion = rootProject.file("VERSION").readText().trim()
+val appVersionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
+
 base { archivesName = "Shiyin" }
 
 android {
@@ -17,12 +21,13 @@ android {
         applicationId = "com.shiyin.player"
         minSdk = 26
         targetSdk = 37
-        versionCode = 16
-        versionName = "2.0.3"
+        versionCode = appVersionCode
+        versionName = appVersion
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     signingConfigs {
