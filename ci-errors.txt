@@ -1,3 +1,4 @@
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:processReleaseNavigationResources
 > Task :app:javaPreCompileRelease
 > Task :app:mergeReleaseArtProfile
@@ -18,28 +19,27 @@
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
 > Task :app:extractReleaseVersionControlInfo
-> Task :app:processReleaseResources
 > Task :app:collectReleaseDependencies
+> Task :app:processReleaseResources
 > Task :app:sdkReleaseDependencyData
 > Task :app:validateSigningRelease
 > Task :app:writeReleaseAppMetadata
 > Task :app:writeReleaseSigningConfigVersions
 
 > Task :app:compileReleaseKotlin
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/ImageViewer.kt:83:22 Unresolved reference 'pointerInput'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/ImageViewer.kt:84:25 Suspend function 'suspend fun PointerInputScope.detectTapGestures(onDoubleTap: ((Offset) -> Unit)? = ..., onLongPress: ((Offset) -> Unit)? = ..., onPress: suspend PressGestureScope.(Offset) -> Unit = ..., onTap: ((Offset) -> Unit)? = ...): Unit' can only be called from a coroutine or another suspend function.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/ImageViewer.kt:84:25 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-suspend fun PointerInputScope.detectTapGestures(onDoubleTap: ((Offset) -> Unit)? = ..., onLongPress: ((Offset) -> Unit)? = ..., onPress: suspend PressGestureScope.(Offset) -> Unit = ..., onTap: ((Offset) -> Unit)? = ...): Unit
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Player.kt:221:37 Unresolved reference 'scope'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Player.kt:221:50 Unresolved reference 'Dispatchers'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Player.kt:222:65 Cannot access 'object CoverSaver : Any': it is private in file.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Player.kt:222:76 Cannot access 'object CoverSaver : Any': it is private in file.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Player.kt:222:81 Unresolved reference 'ctx'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Player.kt:224:48 Unresolved reference 'Dispatchers'.
-e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Player.kt:225:75 Unresolved reference 'ctx'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:97:9 Unresolved reference 'LaunchedEffect'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:97:24 Unresolved reference 'dark'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:98:14 Unresolved reference 'LocalContext'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:98:62 Unresolved reference 'enableEdgeToEdge'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:99:38 Unresolved reference 'dark'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:99:44 Unresolved reference 'SystemBarStyle'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:100:39 Unresolved reference 'SystemBarStyle'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:101:42 Unresolved reference 'dark'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:101:48 Unresolved reference 'SystemBarStyle'.
+e: file:///home/runner/work/shiyin/shiyin/app/src/main/java/com/shiyin/player/ui/Ui.kt:102:39 Unresolved reference 'SystemBarStyle'.
 
 > Task :app:compileReleaseKotlin FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1794663637051.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1794666270994.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/shiyin/shiyin/build/reports/problems/problems-report.html
 
@@ -56,5 +56,5 @@ Execution failed for task ':app:compileReleaseKotlin' (registered by plugin 'com
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 33s
+BUILD FAILED in 38s
 34 actionable tasks: 34 executed
