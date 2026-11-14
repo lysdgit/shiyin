@@ -50,7 +50,7 @@ jobs:
         run: echo "ver=$(cat VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: 构建 Release APK
-        run: gradle assembleRelease --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        run: gradle clean assembleRelease --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
       - name: 重命名 APK(带版本号)
         run: mv app/build/outputs/apk/release/*.apk "app/build/outputs/apk/release/Shiyin-v${{ steps.ver.outputs.ver }}.apk"
