@@ -3,6 +3,8 @@
 package com.shiyin.player.ui
 
 import android.app.Activity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
