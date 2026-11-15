@@ -59,6 +59,7 @@ data class Settings(
     var stiff: Float = 200f,        // 滑块动画速度(越大越快)
     var stretchK: Float = 0.22f,    // 拖拽拉伸系数(0 = 不形变)
     var iconZoom: Float = 0.16f,    // tab 图标随滑块靠近的放大倍率
+    var listRowCard: Boolean = true, // 列表行淡色卡片底(给底栏玻璃提供大块材料,增强效果可见度)
     var buvid3: String? = null,
     var buvid4: String? = null,
 )

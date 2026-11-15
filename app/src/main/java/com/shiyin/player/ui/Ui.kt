@@ -551,6 +551,7 @@ fun TrackRow(
     onPlay: () -> Unit,
     onAddTo: (() -> Unit)? = null,
     onOpen: (() -> Unit)? = null,
+    card: Boolean = false, // 淡色行底:给底栏玻璃提供大块材料,增强效果可见度(设置页可开关)
 ) {
     Row(
         Modifier
@@ -559,7 +560,15 @@ fun TrackRow(
             .clickable {
                 if (track.isMultiP) onOpen?.invoke() else onPlay()
             }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .then(
+                if (card) Modifier
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                else Modifier
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Cover(track.cover, 52.dp)

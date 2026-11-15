@@ -308,6 +308,7 @@ fun SearchPage(nav: NavHostController) {
                             active = q.tracks.getOrNull(q.index)?.key == t.key,
                             onPlay = { onRowPlay(t) },
                             onAddTo = { onRowAddTo(t) },
+                            card = AppStore.settings.value.listRowCard,
                         )
                     }
                     item {
@@ -342,7 +343,15 @@ fun SearchPage(nav: NavHostController) {
                             Modifier
                                 .fillMaxWidth()
                                 .clickable { nav.navigate("user/${u.mid}") }
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                                .then(
+                                    if (AppStore.settings.value.listRowCard) Modifier
+                                        .padding(horizontal = 12.dp, vertical = 5.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(MaterialTheme.colorScheme.surface)
+                                        .padding(horizontal = 10.dp, vertical = 8.dp)
+                                    else Modifier
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                ),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Avatar(u.avatar, 46.dp)

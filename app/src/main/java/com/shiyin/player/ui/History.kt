@@ -4,6 +4,7 @@ package com.shiyin.player.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,11 +31,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.shiyin.player.R
+import com.shiyin.player.data.AppStore
 import com.shiyin.player.data.HistoryEntry
 import com.shiyin.player.data.PlayHistory
 import com.shiyin.player.player.PlayerBus
@@ -182,7 +186,15 @@ private fun HistoryRow(e: HistoryEntry, isLatest: Boolean = false) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .then(
+                if (AppStore.settings.value.listRowCard) Modifier
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                else Modifier
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Cover(e.cover, 44.dp)
