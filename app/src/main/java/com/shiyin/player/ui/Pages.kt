@@ -354,6 +354,7 @@ fun GalbumPage(nav: NavHostController, id: String) {
                     onPlay = { PlayerBus.playTrack(t) },
                     onAddTo = { PlayerBus.openAddTo(t) },
                     onOpen = { PlayerBus.playTrack(t) },
+                    card = AppStore.settings.value.listRowCard,
                 )
             }
             item { Spacer(Modifier.height(20.dp)) }
@@ -493,6 +494,7 @@ fun UserPage(nav: NavHostController, mid: Long) {
                     onPlay = { PlayerBus.playTrack(t) },
                     onAddTo = { PlayerBus.openAddTo(t) },
                     onOpen = { PlayerBus.playTrack(t) },
+                    card = AppStore.settings.value.listRowCard,
                 )
             }
             item {

@@ -186,10 +186,17 @@ fun SettingsTab() {
                 valueRange = 0f..24f,
             )
             TextButton(onClick = {
-                AppStore.settings.value = AppStore.settings.value.copy(glassAlpha = 0.72f, glassBlur = 12f)
+                AppStore.settings.value = AppStore.settings.value.copy(
+                    glassAlpha = 0.10f,
+                    glassBlur = 3f,
+                    damp = 0.5f,
+                    stiff = 220f,
+                    stretchK = 0.15f,
+                    iconZoom = 0.10f,
+                )
                 AppStore.saveSettings()
             }) {
-                Text("恢复推荐参数(72% / 12dp)")
+                Text("恢复推荐参数(10% / 3dp)")
             }
             Spacer(Modifier.height(12.dp))
             Row(
